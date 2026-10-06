@@ -1,0 +1,46 @@
+# ==========================================
+# Compilação e Pastas de Build (C++ / CMake)
+# ==========================================
+build/
+bin/
+out/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so
+*.dylib
+
+# ==========================================
+# Configurações de IDEs e Editores
+# ==========================================
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln
+*.vcxproj*
+
+# ==========================================
+# Arquivos Temporários do Sistema Operacional
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Logs e arquivos de execução do SQLite
+# ==========================================
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ==========================================
+# Arquivos de saída gerados pelos testes
+# (Caso queira ignorar áudios .wav gerados pelo programa)
+# ==========================================
+# data/saida/*.wav
