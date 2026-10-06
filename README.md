@@ -21,36 +21,36 @@ Processador digital de áudio no formato **.wav**, focado em **acessibilidade au
 
 ---
 
-## 📌 Sumário
+## Sumário
 
 - [Integrantes](#-integrantes)
 - [Sobre o projeto](#-sobre-o-projeto)
-  - [Motivação](#-motivação)
-  - [Funcionalidades](#-funcionalidades)
+  - [Motivação](#motivação)
+  - [Funcionalidades](#funcionalidades)
   - [Filtros](#-filtros)
-  - [Modos de operação](#-modos-de-operação)
-- [Arquitetura](#-arquitetura)
+  - [Modos de operação](#modos-de-operação)
+- [Arquitetura](#arquitetura)
   - [Diagrama de classes](#diagrama-de-classes)
   - [Responsabilidades](#responsabilidades-das-classes)
 - [User Stories](#-user-stories)
 - [Estrutura do repositório](#-estrutura-do-repositório)
-- [Tecnologias](#-tecnologias)
-- [Como compilar e executar](#-como-compilar-e-executar)
+- [Tecnologias](#tecnologias)
+- [Como compilar e executar](#como-compilar-e-executar)
 - [Exemplo de script em lote](#-exemplo-de-script-em-lote)
-- [Roadmap](#-roadmap)
+- [Roadmap](#roadmap)
 
 ---
 
-## 🎵 Sobre o projeto
+## 📝 Sobre o projeto
 
-### 🎯 Motivação
+### Motivação
 
 O projeto atende dois públicos:
 
 - 🦻 **Pessoas com deficiência auditiva:** filtros que aumentam o ganho nas faixas de frequência onde há perda auditiva e que atenuam ruídos fora da faixa da fala humana, melhorando a inteligibilidade.
-- 🎛️ **Produtores musicais:** filtros e efeitos criativos (distorção, eco/delay, ganho) para tratar áudios usados em shows e outras mídias.
+- 🎶 **Produtores musicais:** filtros e efeitos criativos (distorção, eco/delay, ganho) para tratar áudios usados em shows e outras mídias.
 
-### ✨ Funcionalidades
+### Funcionalidades
 
 - Leitura de arquivos `.wav` com **validação do cabeçalho** (marcadores `RIFF` e `WAVE`, 44 bytes iniciais).
 - **Exportação** do áudio processado, com escolha de nome/caminho e opção segura de sobrescrever o original.
@@ -72,7 +72,7 @@ O projeto atende dois públicos:
 
 > Todos os filtros herdam de `FiltroAudio` e implementam o método `processar()`. Após qualquer processamento, o áudio permanece dentro das especificações do formato `.wav`.
 
-### 🕹️ Modos de operação
+### Modos de operação
 
 | Modo | Descrição |
 |------|-----------|
@@ -81,7 +81,7 @@ O projeto atende dois públicos:
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ### Diagrama de classes
 
@@ -148,7 +148,7 @@ classDiagram
 
 ---
 
-## 📖 User Stories
+## 📚 User Stories
 
 | # | Ator | Objetivo |
 |---|------|----------|
@@ -182,7 +182,7 @@ Os critérios de aceitação completos e os Cartões CRC estão em [`docs/`](doc
 
 ---
 
-## 🛠️ Tecnologias
+## Tecnologias
 
 | Categoria | Ferramenta |
 |-----------|------------|
@@ -195,7 +195,7 @@ Os critérios de aceitação completos e os Cartões CRC estão em [`docs/`](doc
 
 ---
 
-## 🚀 Como compilar e executar
+## Como compilar e executar
 
 > ⚠️ A ser adicionado conforme o andamento do projeto.
 
@@ -229,7 +229,7 @@ Resumo: 1 sucesso, 0 falhas
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Leitura e validação do cabeçalho WAV
 - [ ] Exportação de arquivos
