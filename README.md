@@ -1,4 +1,4 @@
-# 🎧 20262-team-2 — Processador Digital de Áudio UFV
+# 🎧 2026-2-team-2 — Processador Digital de Áudio UFV
 
 ![C++](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus&logoColor=white)
 ![Formato](https://img.shields.io/badge/formato-.wav-orange)
