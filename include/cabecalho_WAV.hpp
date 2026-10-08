@@ -4,7 +4,7 @@
 #include <cstdint>
 #pragma pack(push, 1)
 
-class CabecalhoWAV{
+class CabecalhoWav{
     private:
 
     char riffID[4];            // Bytes 0-3: Guarda os caracteres ASCII "RIFF", identificador do tipo de arquivo

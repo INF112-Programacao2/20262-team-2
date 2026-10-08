@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include "cabecalho_WAV.h"
+#include "cabecalho_WAV.hpp"
 
 
 //Guarda o áudio em memória (RAM): metadados + amostras.
