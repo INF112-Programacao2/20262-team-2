@@ -10,6 +10,18 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+namespace {
+
+// Remove espaços e aspas nas pontas (o Windows põe aspas em "Copiar como caminho")
+QString limparCaminho(QString caminho) {
+    caminho = caminho.trimmed();
+    if (caminho.size() >= 2 && caminho.startsWith('"') && caminho.endsWith('"'))
+        caminho = caminho.mid(1, caminho.size() - 2);
+    return caminho.trimmed();
+}
+
+} // namespace
+
 InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle("Processador de Áudio");
     resize(650, 600);
@@ -61,20 +73,27 @@ void InterfaceGrafica::escolherEntrada() {
 
 void InterfaceGrafica::escolherSaida() {
     QString caminho = QFileDialog::getSaveFileName(
-        this, "Escolher arquivo de saída", QString(), "Arquivos WAV (*.wav)");
+        this, "Escolher arquivo de saída", QString(), "Arquivos WAV (*.wav)",
+        nullptr, QFileDialog::DontConfirmOverwrite);   // a confirmação é feita em exportar()
     if (!caminho.isEmpty())
         campoSaida->setText(caminho);
 }
 
 void InterfaceGrafica::carregar() {
-    QString caminho = campoEntrada->text().trimmed();
+    QString caminho = limparCaminho(campoEntrada->text());
 
     if (caminho.isEmpty()) {
         QMessageBox::warning(this, "Atenção", "Escolha um arquivo de entrada.");
         return;
     }
-    if (!QFileInfo::exists(caminho)) {
+
+    QFileInfo info(caminho);
+    if (!info.exists()) {
         QMessageBox::critical(this, "Erro", "O arquivo não foi encontrado:\n" + caminho);
+        return;
+    }
+    if (!info.isFile()) {
+        QMessageBox::critical(this, "Erro", "O caminho informado não é um arquivo:\n" + caminho);
         return;
     }
     if (!caminho.endsWith(".wav", Qt::CaseInsensitive)) {
@@ -87,7 +106,7 @@ void InterfaceGrafica::carregar() {
 }
 
 void InterfaceGrafica::exportar() {
-    QString caminho = campoSaida->text().trimmed();
+    QString caminho = limparCaminho(campoSaida->text());
 
     if (caminho.isEmpty()) {
         QMessageBox::warning(this, "Atenção", "Escolha o arquivo de saída.");
@@ -95,11 +114,32 @@ void InterfaceGrafica::exportar() {
     }
     if (!caminho.endsWith(".wav", Qt::CaseInsensitive))
         caminho += ".wav";
+    campoSaida->setText(caminho);   // mostra ao usuário o nome final
 
-    if (QFileInfo::exists(caminho)) {
+    QFileInfo info(caminho);
+    if (info.isDir()) {
+        QMessageBox::critical(this, "Erro", "O caminho informado é uma pasta:\n" + caminho);
+        return;
+    }
+    if (!info.dir().exists()) {
+        QMessageBox::critical(this, "Erro",
+            "A pasta de destino não existe:\n" + info.absolutePath());
+        return;
+    }
+
+    // Saída igual à entrada = sobrescrever o original
+    QString entrada = limparCaminho(campoEntrada->text());
+    bool mesmoArquivo = info.exists() && QFileInfo::exists(entrada)
+        && QFileInfo(entrada).canonicalFilePath() == info.canonicalFilePath();
+
+    if (mesmoArquivo || info.exists()) {
+        QString texto = mesmoArquivo
+            ? "O arquivo de saída é o mesmo arquivo de entrada.\n"
+              "Continuar vai substituir o original pela versão processada."
+            : "O arquivo já existe. Deseja sobrescrever?\n" + caminho;
         auto resposta = QMessageBox::question(
-            this, "Sobrescrever?",
-            "O arquivo já existe. Deseja sobrescrever?\n" + caminho);
+            this, "Sobrescrever?", texto,
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);   // padrão: Não
         if (resposta != QMessageBox::Yes)
             return;
     }
