@@ -11,5 +11,6 @@ add_executable(gui
     main.cpp
     interfacegrafica.cpp
     interfacegrafica.hpp
+    catalogo_filtros.hpp
 )
 target_link_libraries(gui PRIVATE Qt6::Widgets)

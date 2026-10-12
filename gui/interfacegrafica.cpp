@@ -1,11 +1,16 @@
 #include "interfacegrafica.hpp"
+#include "catalogo_filtros.hpp"
+#include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGridLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSlider>
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -52,18 +57,48 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     linhaSaida->addWidget(botaoExportar);
     layout->addLayout(linhaSaida);
 
+    // ----- Grupo: escolha do filtro -----
+    QGroupBox *grupoFiltros = new QGroupBox("Filtros", central);
+    QVBoxLayout *layoutFiltros = new QVBoxLayout(grupoFiltros);
+
+    comboFiltros = new QComboBox(grupoFiltros);
+    for (const FiltroDef &f : catalogoFiltros())
+        comboFiltros->addItem(f.nome);
+    layoutFiltros->addWidget(comboFiltros);
+
+    QGridLayout *grade = new QGridLayout();
+    for (int i = 0; i < 2; ++i) {
+        rotuloParam[i] = new QLabel(grupoFiltros);
+        slider[i] = new QSlider(Qt::Horizontal, grupoFiltros);
+        valorParam[i] = new QLabel(grupoFiltros);
+        valorParam[i]->setMinimumWidth(80);
+        grade->addWidget(rotuloParam[i], i, 0);
+        grade->addWidget(slider[i], i, 1);
+        grade->addWidget(valorParam[i], i, 2);
+    }
+    grade->setColumnStretch(1, 1);
+    layoutFiltros->addLayout(grade);
+    layout->addWidget(grupoFiltros);
+
     // (os próximos commits adicionam os outros widgets aqui, antes do stretch)
     layout->addStretch();
 
-    // ----- Ligações -----
+    // ----- Ligações: arquivos -----
     connect(botaoProcurarEntrada, &QPushButton::clicked, this, &InterfaceGrafica::escolherEntrada);
     connect(botaoProcurarSaida,   &QPushButton::clicked, this, &InterfaceGrafica::escolherSaida);
     connect(botaoCarregar,        &QPushButton::clicked, this, &InterfaceGrafica::carregar);
     connect(botaoExportar,        &QPushButton::clicked, this, &InterfaceGrafica::exportar);
 
+    // ----- Ligações: filtros -----
+    connect(comboFiltros, &QComboBox::currentIndexChanged, this, &InterfaceGrafica::aoMudarFiltro);
+    for (int i = 0; i < 2; ++i)
+        connect(slider[i], &QSlider::valueChanged, this, [this, i](int) { atualizarValor(i); });
+
+    aoMudarFiltro(0);   // inicializa os sliders com o primeiro filtro
     statusBar()->showMessage("Pronto.");
 }
 
+// ---------- Arquivos ----------
 void InterfaceGrafica::escolherEntrada() {
     QString caminho = QFileDialog::getOpenFileName(
         this, "Escolher arquivo de áudio", QString(), "Arquivos WAV (*.wav)");
@@ -146,4 +181,35 @@ void InterfaceGrafica::exportar() {
 
     // TODO: chamar a exportação do GerenciadorArquivoWav aqui, dentro de try/catch
     statusBar()->showMessage("Exportado para: " + caminho);
+}
+
+// ---------- Filtros ----------
+void InterfaceGrafica::aoMudarFiltro(int indice) {
+    if (indice < 0) return;
+    const FiltroDef &f = catalogoFiltros()[indice];
+
+    for (int i = 0; i < 2; ++i) {
+        bool usado = i < f.parametros.size();
+        rotuloParam[i]->setVisible(usado);
+        slider[i]->setVisible(usado);
+        valorParam[i]->setVisible(usado);
+
+        if (usado) {
+            const ParametroDef &p = f.parametros[i];
+            rotuloParam[i]->setText(p.nome + ":");
+            slider[i]->blockSignals(true);   // evita disparar valueChanged durante a configuração
+            slider[i]->setRange(p.min, p.max);
+            slider[i]->setValue(p.padrao);
+            slider[i]->blockSignals(false);
+            atualizarValor(i);
+        }
+    }
+}
+
+void InterfaceGrafica::atualizarValor(int i) {
+    int indice = comboFiltros->currentIndex();
+    if (indice < 0) return;
+    const FiltroDef &f = catalogoFiltros()[indice];
+    if (i >= f.parametros.size()) return;
+    valorParam[i]->setText(QString::number(slider[i]->value()) + f.parametros[i].unidade);
 }
