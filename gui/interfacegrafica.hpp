@@ -25,10 +25,14 @@ private slots:
     void aoRemoverFiltro();
     void aoLimparCadeia();
 
+    void aoProcessar();
+
 private:
     void atualizarValor(int i);
     void moverFiltro(int delta);
     void atualizarBotoesCadeia();
+    void atualizarEstado();
+    void definirOcupado(bool ocupado);
 
     // Arquivos
     QLineEdit *campoEntrada;
@@ -46,4 +50,8 @@ private:
     QPushButton *botaoDescer;
     QPushButton *botaoRemover;
     QPushButton *botaoLimpar;
+
+    // Processamento
+    QPushButton *botaoProcessar;
+    bool arquivoCarregado = false;
 };

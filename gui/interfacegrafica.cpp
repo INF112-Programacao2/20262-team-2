@@ -106,7 +106,10 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
 
     layout->addWidget(grupoCadeia, 1);   // o 1 faz a cadeia ocupar o espaço que sobra
 
-    // (os próximos commits adicionam os outros widgets aqui, abaixo da cadeia)
+    botaoProcessar = new QPushButton("Processar", central);
+    layout->addWidget(botaoProcessar);
+
+    // (os próximos commits adicionam os outros widgets aqui, abaixo do botão Processar)
 
     // ----- Ligações: arquivos -----
     connect(botaoProcurarEntrada, &QPushButton::clicked, this, &InterfaceGrafica::escolherEntrada);
@@ -127,8 +130,16 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     connect(botaoDescer,    &QPushButton::clicked, this, [this]() { moverFiltro(+1); });
     connect(listaCadeia, &QListWidget::currentRowChanged, this, [this](int) { atualizarBotoesCadeia(); });
 
+    // ----- Ligações: processamento -----
+    connect(botaoProcessar, &QPushButton::clicked, this, &InterfaceGrafica::aoProcessar);
+    connect(campoEntrada, &QLineEdit::textChanged, this, [this]() {
+        arquivoCarregado = false;   // se o caminho mudou, é preciso carregar de novo
+        atualizarEstado();
+    });
+
     aoMudarFiltro(0);   // inicializa os sliders com o primeiro filtro
     atualizarBotoesCadeia();
+    atualizarEstado();
     statusBar()->showMessage("Pronto.");
 }
 
@@ -171,6 +182,8 @@ void InterfaceGrafica::carregar() {
     }
 
     // TODO: chamar o GerenciadorArquivoWav aqui (caminho.toStdString())
+    arquivoCarregado = true;
+    atualizarEstado();
     statusBar()->showMessage("Arquivo carregado: " + caminho);
 }
 
@@ -274,6 +287,7 @@ void InterfaceGrafica::aoAdicionarFiltro() {
     listaCadeia->setCurrentItem(item);
 
     atualizarBotoesCadeia();
+    atualizarEstado();
     statusBar()->showMessage(QString("Filtro adicionado. Cadeia com %1 filtro(s).").arg(listaCadeia->count()));
 }
 
@@ -286,6 +300,7 @@ void InterfaceGrafica::aoRemoverFiltro() {
         listaCadeia->setCurrentRow(qMin(linha, listaCadeia->count() - 1));
 
     atualizarBotoesCadeia();
+    atualizarEstado();
     statusBar()->showMessage("Filtro removido.");
 }
 
@@ -300,6 +315,7 @@ void InterfaceGrafica::aoLimparCadeia() {
 
     listaCadeia->clear();
     atualizarBotoesCadeia();
+    atualizarEstado();
     statusBar()->showMessage("Cadeia limpa.");
 }
 
@@ -321,4 +337,44 @@ void InterfaceGrafica::atualizarBotoesCadeia() {
     botaoDescer->setEnabled(linha >= 0 && linha < total - 1);
     botaoRemover->setEnabled(linha >= 0);
     botaoLimpar->setEnabled(total > 0);
+}
+
+// ---------- Processamento ----------
+// O botão Processar só fica ativo com um arquivo carregado e ao menos um filtro na cadeia.
+void InterfaceGrafica::atualizarEstado() {
+    bool temCadeia = listaCadeia->count() > 0;
+    botaoProcessar->setEnabled(arquivoCarregado && temCadeia);
+
+    if (!arquivoCarregado)
+        botaoProcessar->setToolTip("Carregue um arquivo .wav primeiro.");
+    else if (!temCadeia)
+        botaoProcessar->setToolTip("Adicione ao menos um filtro à cadeia.");
+    else
+        botaoProcessar->setToolTip("");
+}
+
+// Trava a tela inteira enquanto o processamento roda (evita cliques no meio dele).
+void InterfaceGrafica::definirOcupado(bool ocupado) {
+    centralWidget()->setEnabled(!ocupado);
+    if (!ocupado)
+        atualizarEstado();
+}
+
+void InterfaceGrafica::aoProcessar() {
+    int quantidade = listaCadeia->count();
+    if (!arquivoCarregado || quantidade == 0) {   // proteção extra: o botão já deveria estar desabilitado
+        QMessageBox::warning(this, "Atenção",
+            "Carregue um arquivo .wav e adicione ao menos um filtro à cadeia.");
+        return;
+    }
+
+    definirOcupado(true);
+
+    // TODO: montar a CadeiaFiltros a partir dos itens da lista (Qt::UserRole de cada um)
+    //       e executá-la sobre o DadosAudio carregado, dentro de try/catch,
+    //       mostrando erros com QMessageBox::critical.
+
+    definirOcupado(false);
+    statusBar()->showMessage(
+        QString("Processamento ainda não integrado: %1 filtro(s) na cadeia.").arg(quantidade));
 }
