@@ -5,6 +5,8 @@ class QLineEdit;
 class QComboBox;
 class QSlider;
 class QLabel;
+class QListWidget;
+class QPushButton;
 
 class InterfaceGrafica : public QMainWindow {
     Q_OBJECT
@@ -19,9 +21,14 @@ private slots:
     void exportar();
 
     void aoMudarFiltro(int indice);
+    void aoAdicionarFiltro();
+    void aoRemoverFiltro();
+    void aoLimparCadeia();
 
 private:
     void atualizarValor(int i);
+    void moverFiltro(int delta);
+    void atualizarBotoesCadeia();
 
     // Arquivos
     QLineEdit *campoEntrada;
@@ -32,4 +39,11 @@ private:
     QLabel *rotuloParam[2];
     QSlider *slider[2];
     QLabel *valorParam[2];
+
+    // Cadeia de filtros
+    QListWidget *listaCadeia;
+    QPushButton *botaoSubir;
+    QPushButton *botaoDescer;
+    QPushButton *botaoRemover;
+    QPushButton *botaoLimpar;
 };

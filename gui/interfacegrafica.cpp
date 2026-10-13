@@ -8,10 +8,13 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSlider>
 #include <QStatusBar>
+#include <QStringList>
+#include <QVariantList>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -78,10 +81,32 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     }
     grade->setColumnStretch(1, 1);
     layoutFiltros->addLayout(grade);
+
+    QPushButton *botaoAdicionar = new QPushButton("Adicionar à cadeia", grupoFiltros);
+    layoutFiltros->addWidget(botaoAdicionar);
     layout->addWidget(grupoFiltros);
 
-    // (os próximos commits adicionam os outros widgets aqui, antes do stretch)
-    layout->addStretch();
+    // ----- Grupo: cadeia de filtros -----
+    QGroupBox *grupoCadeia = new QGroupBox("Cadeia de filtros (executa de cima para baixo)", central);
+    QVBoxLayout *layoutCadeia = new QVBoxLayout(grupoCadeia);
+
+    listaCadeia = new QListWidget(grupoCadeia);
+    layoutCadeia->addWidget(listaCadeia);
+
+    QHBoxLayout *botoesCadeia = new QHBoxLayout();
+    botaoSubir   = new QPushButton("Subir", grupoCadeia);
+    botaoDescer  = new QPushButton("Descer", grupoCadeia);
+    botaoRemover = new QPushButton("Remover", grupoCadeia);
+    botaoLimpar  = new QPushButton("Limpar tudo", grupoCadeia);
+    botoesCadeia->addWidget(botaoSubir);
+    botoesCadeia->addWidget(botaoDescer);
+    botoesCadeia->addWidget(botaoRemover);
+    botoesCadeia->addWidget(botaoLimpar);
+    layoutCadeia->addLayout(botoesCadeia);
+
+    layout->addWidget(grupoCadeia, 1);   // o 1 faz a cadeia ocupar o espaço que sobra
+
+    // (os próximos commits adicionam os outros widgets aqui, abaixo da cadeia)
 
     // ----- Ligações: arquivos -----
     connect(botaoProcurarEntrada, &QPushButton::clicked, this, &InterfaceGrafica::escolherEntrada);
@@ -94,7 +119,16 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     for (int i = 0; i < 2; ++i)
         connect(slider[i], &QSlider::valueChanged, this, [this, i](int) { atualizarValor(i); });
 
+    // ----- Ligações: cadeia -----
+    connect(botaoAdicionar, &QPushButton::clicked, this, &InterfaceGrafica::aoAdicionarFiltro);
+    connect(botaoRemover,   &QPushButton::clicked, this, &InterfaceGrafica::aoRemoverFiltro);
+    connect(botaoLimpar,    &QPushButton::clicked, this, &InterfaceGrafica::aoLimparCadeia);
+    connect(botaoSubir,     &QPushButton::clicked, this, [this]() { moverFiltro(-1); });
+    connect(botaoDescer,    &QPushButton::clicked, this, [this]() { moverFiltro(+1); });
+    connect(listaCadeia, &QListWidget::currentRowChanged, this, [this](int) { atualizarBotoesCadeia(); });
+
     aoMudarFiltro(0);   // inicializa os sliders com o primeiro filtro
+    atualizarBotoesCadeia();
     statusBar()->showMessage("Pronto.");
 }
 
@@ -212,4 +246,79 @@ void InterfaceGrafica::atualizarValor(int i) {
     const FiltroDef &f = catalogoFiltros()[indice];
     if (i >= f.parametros.size()) return;
     valorParam[i]->setText(QString::number(slider[i]->value()) + f.parametros[i].unidade);
+}
+
+// ---------- Cadeia de filtros ----------
+void InterfaceGrafica::aoAdicionarFiltro() {
+    int indice = comboFiltros->currentIndex();
+    if (indice < 0) return;
+    const FiltroDef &f = catalogoFiltros()[indice];
+
+    // Guarda no item: [índice do filtro no catálogo, valor1, valor2...]
+    // (é daqui que a CadeiaFiltros real será montada depois)
+    QVariantList dados;
+    dados << indice;
+    QStringList partes;
+    for (int i = 0; i < f.parametros.size(); ++i) {
+        int v = slider[i]->value();
+        dados << v;
+        partes << f.parametros[i].nome + ": " + QString::number(v) + f.parametros[i].unidade;
+    }
+
+    QString texto = f.nome;
+    if (!partes.isEmpty())
+        texto += " (" + partes.join(", ") + ")";
+
+    QListWidgetItem *item = new QListWidgetItem(texto, listaCadeia);   // a lista é a dona do item
+    item->setData(Qt::UserRole, dados);
+    listaCadeia->setCurrentItem(item);
+
+    atualizarBotoesCadeia();
+    statusBar()->showMessage(QString("Filtro adicionado. Cadeia com %1 filtro(s).").arg(listaCadeia->count()));
+}
+
+void InterfaceGrafica::aoRemoverFiltro() {
+    int linha = listaCadeia->currentRow();
+    if (linha < 0) return;
+
+    delete listaCadeia->takeItem(linha);   // takeItem tira da lista e passa a posse; o delete libera
+    if (listaCadeia->count() > 0)
+        listaCadeia->setCurrentRow(qMin(linha, listaCadeia->count() - 1));
+
+    atualizarBotoesCadeia();
+    statusBar()->showMessage("Filtro removido.");
+}
+
+void InterfaceGrafica::aoLimparCadeia() {
+    if (listaCadeia->count() == 0) return;
+
+    auto resposta = QMessageBox::question(
+        this, "Limpar cadeia", "Remover todos os filtros da cadeia?",
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (resposta != QMessageBox::Yes)
+        return;
+
+    listaCadeia->clear();
+    atualizarBotoesCadeia();
+    statusBar()->showMessage("Cadeia limpa.");
+}
+
+void InterfaceGrafica::moverFiltro(int delta) {
+    int linha = listaCadeia->currentRow();
+    int destino = linha + delta;
+    if (linha < 0 || destino < 0 || destino >= listaCadeia->count())
+        return;
+
+    QListWidgetItem *item = listaCadeia->takeItem(linha);
+    listaCadeia->insertItem(destino, item);
+    listaCadeia->setCurrentRow(destino);
+}
+
+void InterfaceGrafica::atualizarBotoesCadeia() {
+    int linha = listaCadeia->currentRow();
+    int total = listaCadeia->count();
+    botaoSubir->setEnabled(linha > 0);
+    botaoDescer->setEnabled(linha >= 0 && linha < total - 1);
+    botaoRemover->setEnabled(linha >= 0);
+    botaoLimpar->setEnabled(total > 0);
 }
