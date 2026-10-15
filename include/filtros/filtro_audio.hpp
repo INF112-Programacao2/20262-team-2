@@ -8,7 +8,7 @@ class FiltroAudio {
 
     public:
     virtual ~FiltroAudio(); //destrutor com virtual pra todas as classes derivadas 
-    virtual void processar(DadosAudio &amostras);
+    virtual void processar(DadosAudio &amostras); //metodo padrão 
 
 };
 
