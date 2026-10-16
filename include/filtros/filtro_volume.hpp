@@ -15,19 +15,4 @@ class FiltroVolume : public FiltroAudio {
         void processar(DadosAudio &amostras) override;
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif

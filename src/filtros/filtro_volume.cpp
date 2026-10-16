@@ -8,5 +8,5 @@ FiltroVolume :: FiltroVolume (double porcentagem)
 
 
 void FiltroVolume :: processar(DadosAudio &amostras) {
-
+    
 }
