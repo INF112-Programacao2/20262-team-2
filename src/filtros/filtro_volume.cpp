@@ -9,7 +9,7 @@ FiltroVolume :: FiltroVolume (double porcentagem)
 
 
 void FiltroVolume :: processar(DadosAudio &audio) {
-    int16_t* amostra_audio = audio.get_audio();
+    int16_t* amostra_audio = audio.get_audio(); 
     uint32_t total_amostras = audio.get_num_amostras();
 
     for(int i=0;i<total_amostras;i++){
