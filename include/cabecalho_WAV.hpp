@@ -5,7 +5,7 @@
 #pragma pack(push, 1)
 
 class CabecalhoWav{
-    private:
+    public:
 
     char riffID[4];            // Bytes 0-3: Guarda os caracteres ASCII "RIFF", identificador do tipo de arquivo
     uint32_t tamanho_arquivo;  // Bytes 4-7: Armazena o tamanho total do ficheiro em bytes
