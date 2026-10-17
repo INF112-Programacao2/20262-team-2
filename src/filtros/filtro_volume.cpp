@@ -3,7 +3,7 @@
 #include <cstdint>
 
 //construtor
-FiltroVolume :: FiltroVolume (double porcentagem) 
+ FiltroVolume :: FiltroVolume (double porcentagem) 
 : multiplicador(porcentagem/100.0) {}
 
 

@@ -10,7 +10,7 @@ class FiltroVolume : public FiltroAudio {
     public:
 
         //construtor
-        FiltroVolume(double porcentagem);
+        explicit FiltroVolume(double porcentagem); //explicit impede que o compilador faça conversões de tipos de variáveis
         //sobreescreve o método original
         void processar(DadosAudio &amostras) override;
 
