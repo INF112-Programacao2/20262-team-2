@@ -9,38 +9,27 @@
 //Guarda o áudio em memória (RAM): metadados + amostras.
 class DadosAudio {
 private:
-    CabecalhoWav _cabecalho;   // metadados (composição)
-    double *_amostras;          // heap: num_canais * num_quadros floats
-
-    std::size_t indice(int canal, int quadro) const;
+    CabecalhoWav cabecalho;   // metadados (composição)
+    //int16_t = tipo de variável que armazena dados binários
+    int16_t *audio;          //ponteiro pro vetor dinâmico
+    uint32_t num_amostras;       //quantidade de elementos do vetor
 
 public:
-    
-    explicit DadosAudio(const CabecalhoWav &cabecalho);
+    //Construtor
+    DadosAudio(const CabecalhoWav &cabecalho, int16_t *audio, uint32_t num_amostras);
 
-    //Libera o vetor de amostras (cada new[] -> um delete[]). 
+    //Destrutor
     ~DadosAudio();
 
-    // Cópia proibida: com ponteiro cru, copiar causaria delete duplo.
-    DadosAudio(const DadosAudio &) = delete;
-    DadosAudio &operator=(const DadosAudio &) = delete;
+    //Getter array dinâmico
+    int16_t* get_audio(); 
+    //Getter quantidade de elementos do array
+    uint32_t get_num_amostras() const;
+    //Getters que retornam o objeto cabecalhowav, assim pra utilizar um dado do cabecalho basta chamar o getter e colocar .variavel
+    CabecalhoWav& get_cabecalho(); //esse permite alteração dos dados
+    const CabecalhoWav& get_cabecalho()const; //esse permite apenas leitura e impede que o método modifique algo
 
-    // ---- Metadados (repassados do cabeçalho) ----
-    int get_num_canais() const;
-    int get_taxa_amostragem() const;
-    int get_bits_por_amostra() const;
-    int get_num_quadros() const;             
-    std::size_t get_total_amostras() const;  
-    double get_duracao_segundos() const;
-    // Cabeçalho atualizado, usado pelo exportador. 
-    const CabecalhoWav &get_cabecalho() const;
 
-    // ---- Amostras ----
-    float get_amostra(int canal, int quadro) const;
-    
-    void set_amostra(int canal, int quadro, float valor);
-
-    void redimensionar(int novo_num_quadros);
 };
 
 #endif
