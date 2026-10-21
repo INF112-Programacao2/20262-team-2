@@ -1,5 +1,6 @@
 #include "interfacegrafica.hpp"
 #include "catalogo_filtros.hpp"
+#include "ponte_filtros.hpp"
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -66,7 +67,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
 
     comboFiltros = new QComboBox(grupoFiltros);
     for (const FiltroDef &f : catalogoFiltros())
-        comboFiltros->addItem(f.nome);
+        comboFiltros->addItem(filtroDisponivel(f.tipo) ? f.nome : f.nome + " (em breve)");
     layoutFiltros->addWidget(comboFiltros);
 
     QGridLayout *grade = new QGridLayout();
@@ -267,6 +268,12 @@ void InterfaceGrafica::aoAdicionarFiltro() {
     if (indice < 0) return;
     const FiltroDef &f = catalogoFiltros()[indice];
 
+    if (listaCadeia->count() >= LIMITE_FILTROS_CADEIA) {
+        QMessageBox::warning(this, "Limite da cadeia",
+            QString("A cadeia aceita no máximo %1 filtros.").arg(LIMITE_FILTROS_CADEIA));
+        return;
+    }
+
     // Guarda no item: [índice do filtro no catálogo, valor1, valor2...]
     // (é daqui que a CadeiaFiltros real será montada depois)
     QVariantList dados;
@@ -288,7 +295,10 @@ void InterfaceGrafica::aoAdicionarFiltro() {
 
     atualizarBotoesCadeia();
     atualizarEstado();
-    statusBar()->showMessage(QString("Filtro adicionado. Cadeia com %1 filtro(s).").arg(listaCadeia->count()));
+    if (filtroDisponivel(f.tipo))
+        statusBar()->showMessage(QString("Filtro adicionado. Cadeia com %1 filtro(s).").arg(listaCadeia->count()));
+    else
+        statusBar()->showMessage("Filtro adicionado, mas ele ainda não existe no núcleo e será ignorado ao processar.");
 }
 
 void InterfaceGrafica::aoRemoverFiltro() {
@@ -368,13 +378,42 @@ void InterfaceGrafica::aoProcessar() {
         return;
     }
 
+    // Lista da tela -> CadeiaFiltros real (classes do grupo)
+    QList<QVariantList> itens;
+    for (int i = 0; i < quantidade; ++i)
+        itens << listaCadeia->item(i)->data(Qt::UserRole).toList();
+
+    CadeiaMontada montada = montarCadeia(itens);
+    if (!montada.erro.isEmpty()) {
+        QMessageBox::critical(this, "Erro", montada.erro);
+        return;
+    }
+    if (montada.filtros.empty()) {
+        QMessageBox::warning(this, "Filtros indisponíveis",
+            "Nenhum filtro da cadeia existe ainda no núcleo do projeto:\n\n- "
+            + montada.ignorados.join("\n- "));
+        return;
+    }
+    if (!montada.ignorados.isEmpty()) {
+        auto resposta = QMessageBox::question(
+            this, "Filtros indisponíveis",
+            "Estes filtros ainda não existem no núcleo do projeto e serão ignorados:\n\n- "
+                + montada.ignorados.join("\n- ") + "\n\nContinuar mesmo assim?",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (resposta != QMessageBox::Yes)
+            return;
+    }
+
     definirOcupado(true);
 
-    // TODO: montar a CadeiaFiltros a partir dos itens da lista (Qt::UserRole de cada um)
-    //       e executá-la sobre o DadosAudio carregado, dentro de try/catch,
+    // TODO: quando o GerenciadorArquivoWav::carregar existir, guardar o DadosAudio devolvido
+    //       (std::unique_ptr<DadosAudio>) e processar aqui, dentro de try/catch:
+    //           montada.cadeia->processar(*audioCarregado);
     //       mostrando erros com QMessageBox::critical.
 
     definirOcupado(false);
     statusBar()->showMessage(
-        QString("Processamento ainda não integrado: %1 filtro(s) na cadeia.").arg(quantidade));
+        QString("Cadeia montada com %1 filtro(s) real(is) e %2 ignorado(s). "
+                "Falta o áudio carregado (GerenciadorArquivoWav) para processar.")
+            .arg(montada.filtros.size()).arg(montada.ignorados.size()));
 }
