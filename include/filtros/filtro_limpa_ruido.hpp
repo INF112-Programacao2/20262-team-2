@@ -2,6 +2,7 @@
 #define FILTRO_LIMPA_RUIDO_HPP
 #include"filtro_audio.hpp"
 
+//filtro que limpa ruidos -> sons fora da faixa de frequência da fala humana
 class FiltroLimpaRuido : public FiltroAudio {
     private:
     double corte_grave; //fator multiplicativo pequeno -> remove frequências baixas
