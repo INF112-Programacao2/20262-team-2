@@ -1,5 +1,5 @@
-#ifndef DADOS_AUDIO_H
-#define DADOS_AUDIO_H
+#ifndef DADOS_AUDIO_HPP
+#define DADOS_AUDIO_HPP
 
 #include <cstddef>
 #include <cstdint>
