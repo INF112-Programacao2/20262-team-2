@@ -1,4 +1,4 @@
-#include "gerenciador_arquivo_wav.hpp"
+#include "gerenciador_arquivo_WAV.hpp"
 #include <fstream>  //biblioteca responsável pela leitura e escrita de arquivos no disco.
 #include <iostream>
 #include <cstring>
@@ -30,9 +30,28 @@ DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
     int16_t *amostras = new int16_t[num_amostras];
 
     //leitura dos dados brutos de áudio para a memória RAM
-    arquivo.read((char*)(amostras), cabecalho.dataSize);
+    arquivo.read((char*)amostras, cabecalho.dataSize);
     arquivo.close();
 
     //Retorna uma nova instância encapsdulada da classe DadosAudio
     return new DadosAudio(cabecalho, amostras, num_amostras);
 }
+void GerenciadorArquivoWav::exportar(const std::string &caminho, const DadosAudio &dados){   //Cria/sobrescreve o arquivo em modo binário
+
+    std::ofstream arquivo(caminho, std::ios::binary);
+
+    
+    if(!arquivo.is_open()){
+        throw std::runtime_error("Erro: Nao foi possivel criar ou exportar o arquivo em: " + caminho);
+    }
+
+    //Escreve o cabeçalho de 44 bytes no artquivo de saída(história 2)
+    const CabecalhoWav &cabecalho = dados.get_cabecalho();
+    arquivo.write(reinterpret_cast<const char*>(&cabecalho), sizeof(CabecalhoWav));
+
+    //escreve os dados brutos de áudio modificados
+    const int16_t *amostras = const_cast<DadosAudio&>(dados).get_audio();
+    arquivo.write(reinterpret_cast<const char*>(amostras), cabecalho.dataSize);
+
+    arquivo.close();
+} 
