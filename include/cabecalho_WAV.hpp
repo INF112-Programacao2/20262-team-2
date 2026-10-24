@@ -39,7 +39,6 @@ class CabecalhoWav{
     uint16_t get_audio_format() const;
     uint16_t get_block_align() const;
 
-    void imprime() const;
 };
 
 #endif
