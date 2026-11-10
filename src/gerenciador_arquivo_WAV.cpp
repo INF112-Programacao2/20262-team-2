@@ -7,7 +7,7 @@
 DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
     //Tenta abrir o arquivo em modo binário
     std::ifstream arquivo(caminho, std::ios::binary);
-    if(!arquivo.is_open()){     //tratamento de erro
+    if(!arquivo.is_open()){    //tratamento de erro
         throw std::runtime_error("Erro: Nao foi possivel abrir o arquivo (caminho inexistente ou invalido): " + caminho);
     }
 

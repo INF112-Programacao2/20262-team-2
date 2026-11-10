@@ -1,18 +1,19 @@
 #ifndef FILTRO_AUDIO_HPP
 #define FILTRO_AUDIO_HPP
-#include"dados_audio.hpp"
+
+#include <string>
+#include "dados_audio.hpp"
 
 class FiltroAudio {
-    private:
+public:
+    virtual ~FiltroAudio() = default;
 
-
-    public:
-    virtual ~FiltroAudio(); //destrutor com virtual pra todas as classes derivadas 
-    virtual void processar(DadosAudio &amostras); //metodo padrão 
-
+    virtual void processar(DadosAudio& audio) = 0;
+    virtual std::string tipo() const = 0;
+    virtual std::string parametros() const = 0;
 };
 
-
+#endif // FILTRO_AUDIO_HPP
 
 
 
