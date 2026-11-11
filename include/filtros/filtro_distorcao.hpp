@@ -5,14 +5,16 @@
 class FiltroDistorcao : public FiltroAudio{
     private:
     double drive; //intensidade do empurrao do som
-    double limite; //ponto onde a onda sera achatada
-    double reducao_volume_saida; //reducao de volume para nao estourar
+    double limite; //ponto onde a onda sera achatada - 0.0 a 1.0
+    double reducao_volume_saida; //reducao de volume para nao estourar 0.0 a 1.0
 
     public:
-    explicit FiltroDistorcao(double drive, double limite, double reducao_volume_saida);
-    ~FiltroDistorcao() override;
+    FiltroDistorcao(double drive, double limite, double reducao_volume_saida);
+    ~FiltroDistorcao() override = default;
     
     void processar(DadosAudio &audio) override;
+    std::string get_tipo() const override { return "Distorcao"; }
+    std::string get_parametros() const override;
 
 };
 
