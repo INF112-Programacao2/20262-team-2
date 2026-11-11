@@ -29,6 +29,13 @@ public:
     CabecalhoWav& get_cabecalho(); //esse permite alteração dos dados
     const CabecalhoWav& get_cabecalho()const; //esse permite apenas leitura e impede que o método modifique algo
 
+    // Getters dos metadados (usados pelos filtros DSP)
+    uint16_t get_num_canais() const;
+    uint32_t get_sample_rate() const;
+
+    // Setters dos metadados
+    void set_num_canais(uint16_t canais);
+    void set_sample_rate(uint32_t sample_rate);
 
 };
 

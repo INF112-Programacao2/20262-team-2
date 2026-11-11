@@ -32,3 +32,21 @@ CabecalhoWav& DadosAudio::get_cabecalho() {
 const CabecalhoWav& DadosAudio::get_cabecalho() const { 
     return cabecalho; 
 }
+
+// --- Getters dos metadados ---
+uint16_t DadosAudio::get_num_canais() const {
+    return cabecalho.get_num_de_canais();
+}
+
+uint32_t DadosAudio::get_sample_rate() const {
+    return cabecalho.get_sample_rate();
+}
+
+// --- Setters dos metadados ---
+void DadosAudio::set_num_canais(uint16_t canais) {
+    cabecalho.num_de_canais = canais;
+}
+
+void DadosAudio::set_sample_rate(uint32_t sample_rate) {
+    cabecalho.sample_rate = sample_rate;
+}

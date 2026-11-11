@@ -32,7 +32,7 @@ class CabecalhoWav{
     bool carrega_de_buffer(const char *buffer);
 
     // Getters -- somente leitura, ninguem de fora altera um cabecalho ja lido
-    uint16_t get_num_channels() const;
+    uint16_t get_num_de_canais() const;
     uint32_t get_sample_rate() const;
     uint16_t get_bits_per_sample() const;
     uint32_t get_subchunk2_size() const;
