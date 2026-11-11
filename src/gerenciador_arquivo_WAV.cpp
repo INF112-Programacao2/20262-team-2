@@ -16,9 +16,9 @@ DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
     CabecalhoWav cabecalho;
     arquivo.read(reinterpret_cast<char*>(&cabecalho),sizeof(CabecalhoWav));
     //Validação dos marcadores RIFF e WAVE(história 1)
-    if(std::memcmp(cabecalho.riffID, "RIFF", 4) != 0 || std::memcmp(cabecalho.waveID, "WAVE", 4) != 0){
-        arquivo.close();
-        throw std::invalid_argument("Erro: Formato de arquivo invalido! Marcadores RIFF/WAVE nao encontrados.");
+    if (!cabecalho.e_valido()) {
+    arquivo.close();
+    throw std::invalid_argument("Erro: Formato de arquivo invalido! Marcadores RIFF/WAVE nao encontrados.");
     }
     
     //Cálculo do numero de amostras
