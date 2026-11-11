@@ -14,7 +14,7 @@ DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
 
     //Leitura dos 44 bytes do cabewçalho
     CabecalhoWav cabecalho;
-    arquivo.read((char*)&cabecalho, sizeof(CabecalhoWav));
+    arquivo.read(reinterpret_cast<char*>(&cabecalho),sizeof(CabecalhoWav));
     //Validação dos marcadores RIFF e WAVE(história 1)
     if(std::memcmp(cabecalho.riffID, "RIFF", 4) != 0 || std::memcmp(cabecalho.waveID, "WAVE", 4) != 0){
         arquivo.close();
@@ -24,13 +24,13 @@ DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
     //Cálculo do numero de amostras
     //dataSize é o total de bytes de áudio
     //cada amostra int16_t possui 2 bytes
-    uint32_t num_amostras = cabecalho.dataSize/sizeof(int16_t);  //fórmula do numero de amostras
+    uint32_t num_amostras = cabecalho.get_subchunk2_size()/sizeof(int16_t);  //fórmula do numero de amostras
 
     //Alocação dinâmica do vetor de áudio na RAM (História 3)
     int16_t *amostras = new int16_t[num_amostras];
 
     //leitura dos dados brutos de áudio para a memória RAM
-    arquivo.read((char*)amostras, cabecalho.dataSize);
+    arquivo.read(reinterpret_cast<char*> (amostras), cabecalho.get_subchunk2_size());
     arquivo.close();
 
     //Retorna uma nova instância encapsdulada da classe DadosAudio
@@ -50,8 +50,8 @@ void GerenciadorArquivoWav::exportar(const std::string &caminho, const DadosAudi
     arquivo.write(reinterpret_cast<const char*>(&cabecalho), sizeof(CabecalhoWav));
 
     //escreve os dados brutos de áudio modificados
-    const int16_t *amostras = const_cast<DadosAudio&>(dados).get_audio();
-    arquivo.write(reinterpret_cast<const char*>(amostras), cabecalho.dataSize);
+    const int16_t *amostras = dados.get_amostras();
+    arquivo.write(reinterpret_cast<const char*>(amostras), cabecalho.get_subchunk2_size());
 
     arquivo.close();
 } 
