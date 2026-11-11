@@ -7,8 +7,8 @@
 int16_t clipping (float valor) {
     if (valor > 32767.0)
         return 32767;
-    if (valor < -32767.0)
-        return -32767;
+    if (valor < -32768.0)
+        return -32768;
 
     return static_cast<int16_t>(valor); //retorna o valor float convertido para binário
 }

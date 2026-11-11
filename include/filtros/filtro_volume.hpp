@@ -10,10 +10,14 @@ class FiltroVolume : public FiltroAudio {
     public:
 
         //construtor
-        explicit FiltroVolume(double porcentagem); //explicit impede que o compilador faça conversões de tipos de variáveis
+        explicit FiltroVolume(double multiplicador = 1.0); //explicit impede que o compilador faça conversões de tipos de variáveis
         ~FiltroVolume() override = default;
         //sobreescreve o método original
         void processar(DadosAudio &amostras) override;
+
+        //
+        std::string get_tipo() const override { return "Volume"; }
+        std::string get_parametros() const override;
 
 };
 #endif
