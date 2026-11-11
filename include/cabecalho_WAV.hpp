@@ -6,7 +6,7 @@
 
 // CabecalhoWav: representa os metadados fixos (44 bytes) de um arquivo .wav
 // TAD simples, apenas guarda o que foi lido do arquivo e expoe getters.
-
+#pragma pack(push, 1)
 class CabecalhoWav{
     private:
 
@@ -39,6 +39,14 @@ class CabecalhoWav{
     uint16_t get_audio_format() const;
     uint16_t get_block_align() const;
 
-};
+    // Setters
+    void set_num_de_canais(uint16_t canais);
+    void set_sample_rate(uint32_t sr);
+    void set_subchunk2_size(uint32_t size);
 
+    friend class GerenciadorArquivoWav;
+    friend class DadosAudio;
+
+};
+#pragma pack(pop)
 #endif
