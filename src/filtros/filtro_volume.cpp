@@ -20,7 +20,7 @@ void FiltroVolume :: processar(DadosAudio &audio) {
     for(int i=0;i<total_amostras;i++){
         double valor_processado = static_cast<double>(amostra_audio[i]) * multiplicador; //aplica o multiplicador no volume
 
-        valor_processado = clipping(); //função auxiliar de clipping limita o som no intervalo correto
+        valor_processado = clipping(valor_processado); //função auxiliar de clipping limita o som no intervalo correto
         amostra_audio[i] = static_cast<int16_t>(valor_processado); //convertendo de volta pra int16_t
     }
 
