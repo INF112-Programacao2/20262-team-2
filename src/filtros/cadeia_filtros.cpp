@@ -70,7 +70,20 @@ bool CadeiaFiltros::adicionar_filtro(std::unique_ptr<FiltroAudio> filtro){
     return true;
 }
 
+bool CadeiaFiltros::remover_filtro(uint32_t indice) {
+    if (indice >= quantidade) //impede acesso a um indice invalido
+        return false;
 
+    //remove o filtro da cadeia (array da cadeia) e coloca em uma variável que será automaticamante destruida ao fim do escopo
+    std::unique_ptr<FiltroAudio> removido = std::move(filtros[indice]);
+
+    //desloca os filtros seguintes pra tras
+    for (uint32_t i = indice; i + 1 < quantidade; i++) 
+        filtros[i] = std::move(filtros[i + 1]);
+    
+    quantidade--;
+    return true;
+}
 
 
 
