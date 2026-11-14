@@ -110,20 +110,11 @@ void CadeiaFiltros::limpar() {
     quantidade = 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+FiltroAudio *CadeiaFiltros::get_filtro(uint32_t indice) const {
+    if (indice >= quantidade)
+        return nullptr;
+    return filtros[indice].get();
+}
 
 //analisa se o vetor da cadeia não está vazio e chama o método processar da classe do objeto no indice atual, ou seja, aplica filtros de forma encadeada
 void CadeiaFiltros::processar(DadosAudio &audio){
