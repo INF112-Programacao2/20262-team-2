@@ -29,7 +29,7 @@ class CabecalhoWav{
 
     // Preenche os campos a partir de um buffer bruto de 44 bytes lido do arquivo.
     // Retorna true se o cabecalho for valido (RIFF/WAVE/fmt /data), false caso contrario.
-    bool carrega_de_buffer(const char *buffer);
+    bool e_valida(const char *buffer);
 
     // Getters -- somente leitura, ninguem de fora altera um cabecalho ja lido
     uint16_t get_num_de_canais() const;
@@ -43,9 +43,6 @@ class CabecalhoWav{
     void set_num_de_canais(uint16_t canais);
     void set_sample_rate(uint32_t sr);
     void set_subchunk2_size(uint32_t size);
-
-    friend class GerenciadorArquivoWav;
-    friend class DadosAudio;
 
 };
 #pragma pack(pop)
