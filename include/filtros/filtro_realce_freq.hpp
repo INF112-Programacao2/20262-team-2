@@ -14,7 +14,7 @@ class FiltroRealceFreq : public FiltroAudio {
      public:
         static const double largura_faixa_padrao = 1.0;
         static const double ganho_max_db = 24.0; //limite de segurança para não estourar o áudio
-        static uint32_t MAX_CANAIS = 8;
+        static const uint32_t MAX_CANAIS = 8;
 
          //lança std::invalid_argument se algum parâmetro for inválido
         explicit FiltroRealceFreq(double frequencia_central, double ganho_db, double largura_faixa = largura_faixa_padrao);
