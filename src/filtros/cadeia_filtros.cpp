@@ -104,6 +104,13 @@ bool CadeiaFiltros::mover_filtro(uint32_t indice_atual, uint32_t indice_destino)
 }
 
 
+void CadeiaFiltros::limpar() {
+    //um array novo (todo nulo) substitui o antigo, que é destruído junto com todos os filtros
+    filtros = std::make_unique<std::unique_ptr<FiltroAudio>[]>(capacidade);
+    quantidade = 0;
+}
+
+
 
 
 
