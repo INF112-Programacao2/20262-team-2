@@ -16,12 +16,11 @@ CadeiaFiltros :: CadeiaFiltros(uint32_t capacidade_inicial)
         capacidade = capacidade_max_filtros;
     }
 
-    filtros = new FiltroAudio*[capacidade];
+    filtros = std::make_unique<std::unique_ptr<FiltroAudio>[]>(capacidade); //funciona como se fosse o new
 }
 
 //destrutor
 CadeiaFiltros::~CadeiaFiltros(){
-    delete[] filtros;
 }
 
 //redimensiona tamanho inicial da cadeia
@@ -37,18 +36,18 @@ void CadeiaFiltros::redimensionar(){
         return;
     }
 
-    FiltroAudio** novo_array = new FiltroAudio* [nova_capacidade];
+    //auto para unique ptr
+    auto novo_array = std::make_unique<std::unique_ptr<FiltroAudio>[]>(nova_capacidade);
     for(uint32_t i=0;i<capacidade;i++){
-        novo_array[i] = filtros[i];
+        novo_array[i] = std::move(filtros[i]);
     }
 
-    delete[] filtros;
-    filtros = novo_array;
+    filtros = std::move(novo_array);
     capacidade = nova_capacidade;
 
 }
 
-bool CadeiaFiltros::adicionar_filtro(FiltroAudio* filtro){
+bool CadeiaFiltros::adicionar_filtro(std::unique_ptr<FiltroAudio> filtro){
     //verifica se o filtro é um objeto válido existente
     if(filtro == nullptr){
         return false;
@@ -66,10 +65,29 @@ bool CadeiaFiltros::adicionar_filtro(FiltroAudio* filtro){
     }
 
     //aloca o objeto filtro no vetor da cadeia e incrementa a quantidade
-    filtros[quantidade] = filtro;
+    filtros[quantidade] = std::move(filtro);
     quantidade++;
     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //analisa se o vetor da cadeia não está vazio e chama o método processar da classe do objeto no indice atual, ou seja, aplica filtros de forma encadeada
 void CadeiaFiltros::processar(DadosAudio &audio){
