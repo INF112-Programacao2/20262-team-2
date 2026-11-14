@@ -85,7 +85,23 @@ bool CadeiaFiltros::remover_filtro(uint32_t indice) {
     return true;
 }
 
+bool CadeiaFiltros::mover_filtro(uint32_t indice_atual, uint32_t indice_destino) {
+    if (indice_atual >= quantidade || indice_destino >= quantidade)
+        return false;
+    if (indice_atual == indice_destino)
+        return true;
 
+    std::unique_ptr<FiltroAudio> movido = std::move(filtros[indice_atual]);
+    if (indice_atual < indice_destino) {
+        for (uint32_t i = indice_atual; i < indice_destino; i++)
+            filtros[i] = std::move(filtros[i + 1]);
+    } else {
+        for (uint32_t i = indice_atual; i > indice_destino; i--)
+            filtros[i] = std::move(filtros[i - 1]);
+    }
+    filtros[indice_destino] = std::move(movido);
+    return true;
+}
 
 
 
