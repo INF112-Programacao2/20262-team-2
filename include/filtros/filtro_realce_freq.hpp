@@ -10,10 +10,11 @@ class FiltroRealceFreq : public FiltroAudio {
         double frequencia_central; //frequência (Hz) onde o ganho é máximo
         double ganho_db;           //ganho em dB na frequência central (positivo realça, negativo atenua)
         double largura_faixa;                  //largura da faixa: quanto maior, mais estreita a faixa afetada
-
+       
      public:
         static const double largura_faixa_padrao = 1.0;
         static const double ganho_max_db = 24.0; //limite de segurança para não estourar o áudio
+        static uint32_t MAX_CANAIS = 8;
 
          //lança std::invalid_argument se algum parâmetro for inválido
         explicit FiltroRealceFreq(double frequencia_central, double ganho_db, double largura_faixa = largura_faixa_padrao);
