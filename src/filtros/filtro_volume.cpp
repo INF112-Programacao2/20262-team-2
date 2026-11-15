@@ -28,3 +28,7 @@ std::string FiltroVolume::get_parametros() const {
     return "multiplicador=" + std::to_string(multiplicador);
 }
 
+std::string FiltroVolume::get_tipo() const {
+    return "Volume";
+}
+

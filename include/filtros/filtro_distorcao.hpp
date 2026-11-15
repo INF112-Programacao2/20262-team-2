@@ -13,7 +13,7 @@ class FiltroDistorcao : public FiltroAudio{
     ~FiltroDistorcao() override = default;
     
     void processar(DadosAudio &audio) override;
-    std::string get_tipo() const override { return "Distorcao"; }
+    std::string get_tipo() const override;
     std::string get_parametros() const override;
 
 };
