@@ -22,18 +22,18 @@ class FiltroLimpaRuido : public FiltroAudio {
 
     public:
 
-    static const double corte_grave_padrao_hz = 300.0;
-    static const double corte_agudo_padrao_hz = 3400.0;
+    static const double corte_grave_padrao = 300.0;
+    static const double corte_agudo_padrao = 3400.0;
 
     //construtor
-    explicit FiltroLimpaRuido(double corte_grave_hz = corte_grave_padrao_hz, double corte_agudo_hz = corte_agudo_padrao_hz);
+    explicit FiltroLimpaRuido(double corte_grave_hz = corte_grave_padrao, double corte_agudo_hz = corte_agudo_padrao);
     //destrutor
     ~FiltroLimpaRuido() override;
     //processar
     void processar(DadosAudio &audio) override;
 
-    double get_corte_grave_hz() const;
-    double get_corte_agudo_hz() const;
+    double get_corte_grave() const;
+    double get_corte_agudo() const;
 
     std::string get_tipo() const override;
     std::string get_parametros() const override;

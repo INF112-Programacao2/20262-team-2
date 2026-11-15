@@ -6,4 +6,6 @@
 //função de Clipping - mantém o valor das amostras de áudio entre o limite correto
     int16_t clipping(float valor);
     
+
+    static const uint32_t MAX_CANAIS = 8;
 #endif
