@@ -7,7 +7,7 @@ DadosAudio::DadosAudio(const CabecalhoWav &cabecalho, int16_t *audio, uint32_t n
 
 //Destrutor: Libera a memória RAM alocada dinamicamente
 DadosAudio::~DadosAudio(){
-    if (audio != nullptr){
+    if(audio != nullptr){
         delete[] audio;
         audio = nullptr;
     }
@@ -44,9 +44,9 @@ uint32_t DadosAudio::get_sample_rate() const {
 
 // --- Setters dos metadados ---
 void DadosAudio::set_num_canais(uint16_t canais) {
-    cabecalho.num_de_canais = canais;
+    cabecalho.set_num_de_canais(canais);
 }
 
 void DadosAudio::set_sample_rate(uint32_t sample_rate) {
-    cabecalho.sample_rate = sample_rate;
+    cabecalho.set_sample_rate(sample_rate);
 }
