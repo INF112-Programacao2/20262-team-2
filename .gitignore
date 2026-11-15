@@ -1,7 +1,8 @@
 # ==========================================
-# Compilação e Pastas de Build (C++ / CMake)
+# Compilação e pastas de build (C++)
 # ==========================================
 build/
+build-debug/
 bin/
 out/
 CMakeFiles/
@@ -9,14 +10,19 @@ CMakeCache.txt
 cmake_install.cmake
 *.o
 *.obj
+*.d
 *.exe
 *.out
 *.a
 *.so
 *.dylib
 
+# Executáveis gerados pelo Makefile
+processador_audio
+processador_audio_debug
+
 # ==========================================
-# Configurações de IDEs e Editores
+# Configurações de IDEs e editores
 # ==========================================
 .vscode/
 .idea/
@@ -26,20 +32,19 @@ cmake_install.cmake
 *.vcxproj*
 
 # ==========================================
-# Arquivos Temporários do Sistema Operacional
+# Arquivos temporários do sistema operacional
 # ==========================================
 .DS_Store
 Thumbs.db
 
 # ==========================================
-# Logs e arquivos de execução do SQLite
+# Banco de dados SQLite (arquivos auxiliares)
 # ==========================================
 *.db-journal
 *.db-wal
 *.db-shm
 
 # ==========================================
-# Arquivos de saída gerados pelos testes
-# (Caso queira ignorar áudios .wav gerados pelo programa)
+# Áudios gerados pelo programa (saídas dos testes)
 # ==========================================
-# data/saida/*.wav
+data/saida/

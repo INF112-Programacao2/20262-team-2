@@ -116,6 +116,14 @@ FiltroAudio *CadeiaFiltros::get_filtro(uint32_t indice) const {
     return filtros[indice].get();
 }
 
+uint32_t CadeiaFiltros::get_quantidade() const {
+    return quantidade;
+}
+
+std::string CadeiaFiltros::get_parametros() const {
+    return "filtros=" + std::to_string(quantidade);
+}
+
 //analisa se o vetor da cadeia não está vazio e chama o método processar da classe do objeto no indice atual, ou seja, aplica filtros de forma encadeada
 void CadeiaFiltros::processar(DadosAudio &audio){
     for(uint32_t i =0; i < quantidade; i++){

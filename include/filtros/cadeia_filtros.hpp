@@ -42,6 +42,8 @@ class CadeiaFiltros : public FiltroAudio {
         void processar(DadosAudio &audio) override;//precisa colocar o processara aqui porque a cadeia vai acionar o processar de cada classe de filtro uma atras da outra
                                           //isso vai permitir correr menos risco na hora de modificar metadados e aumentar a eficiencia
 
+        std::string get_tipo() const override;
+        std::string get_parametros() const override; //ex.: "filtros=3"
 };
 
 #endif
