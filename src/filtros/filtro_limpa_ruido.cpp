@@ -1,8 +1,18 @@
 #include"filtro_limpa_ruido.hpp"
 #include"funcoes_auxiliares.hpp"    
-#include<iostream>
-#include<cstdint>
+#include <cmath>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
 
+namespace {
+    const double PI = 3.14159265358979323846;
+    const double Q_BUTTERWORTH = 0.70710678118654752440; //1/raiz(2): resposta mais plana possível na banda de passagem
+
+    //coeficientes normalizados de um filtro biquad
+    struct Biquad {
+        double b0, b1, b2, a1, a2;
+    };
 
 //construtor
 FiltroLimpaRuido::FiltroLimpaRuido():
