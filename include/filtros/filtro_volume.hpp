@@ -16,7 +16,7 @@ class FiltroVolume : public FiltroAudio {
         void processar(DadosAudio &amostras) override;
 
         //
-        std::string get_tipo() const override { return "Volume"; }
+        std::string get_tipo() const override;
         std::string get_parametros() const override;
 
 };
