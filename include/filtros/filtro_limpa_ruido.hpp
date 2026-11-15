@@ -16,9 +16,9 @@ class FiltroLimpaRuido : public FiltroAudio {
     struct Biquad { double b0, b1, b2, a1, a2; };          // coeficientes do filtro
     struct Estado { double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0; }; // memória de um canal
 
-    static Biquad passa_alta(double fc, double fs);
-    static Biquad passa_baixa(double fc, double fs);
-    static double aplicar(const Biquad &f, Estado &e, double x);
+    static Biquad passa_alta(double fc, double fs); //calcula os coeficientes do passa-alta
+    static Biquad passa_baixa(double fc, double fs); //calcula os coeficientes do passa-baixa
+    static double aplicar(const Biquad &f, Estado &e, double x); //calcula 1 amostra de saída e atualiza a memória
 
     public:
 
