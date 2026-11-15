@@ -62,6 +62,10 @@ std::string FiltroLimpaRuido::get_parametros() const {
            ",corte_agudo=" + std::to_string(corte_agudo);
 }
 
+std::string FiltroLimpaRuido::get_tipo() const {
+    return "LimpaRuido";
+}
+
 
 
 //processar
