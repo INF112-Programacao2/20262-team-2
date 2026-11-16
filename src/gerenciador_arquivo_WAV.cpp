@@ -3,8 +3,9 @@
 #include <iostream>
 #include <cstring>
 #include <stdexcept>    //biblioteca que define as classes de exceções padrão
+#include <utility>       //necessário para utilizar a função std::move.
 
-DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
+std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &caminho){
     //Tenta abrir o arquivo em modo binário
     std::ifstream arquivo(caminho, std::ios::binary);
     if(!arquivo.is_open()){    //tratamento de erro
@@ -27,14 +28,15 @@ DadosAudio* GerenciadorArquivoWav::carregar(const std::string &caminho){
     uint32_t num_amostras = cabecalho.get_subchunk2_size()/sizeof(int16_t);  //fórmula do numero de amostras
 
     //Alocação dinâmica do vetor de áudio na RAM (História 3)
-    int16_t *amostras = new int16_t[num_amostras];
+    std::unique_ptr<int16_t[]> amostras = std::make_unique<int16_t[]>(num_amostras);
 
     //leitura dos dados brutos de áudio para a memória RAM
-    arquivo.read(reinterpret_cast<char*> (amostras), cabecalho.get_subchunk2_size());
+    arquivo.read(reinterpret_cast<char*> (amostras.get()), cabecalho.get_subchunk2_size());
     arquivo.close();
 
     //Retorna uma nova instância encapsdulada da classe DadosAudio
-    return new DadosAudio(cabecalho, amostras, num_amostras);
+    // A função std::move irá transferir a propriedade do vetor de amostras para o objeto DadosAudio
+    return std::make_unique<DadosAudio>(cabecalho, std::move(amostras), num_amostras);
 }
 void GerenciadorArquivoWav::exportar(const std::string &caminho, const DadosAudio &dados){   //Cria/sobrescreve o arquivo em modo binário
 
