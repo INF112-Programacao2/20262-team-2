@@ -19,10 +19,6 @@ public:
     //Construtor
     DadosAudio(const CabecalhoWav &cabecalho, std::unique_ptr<int16_t[]> audio, uint32_t num_amostras);
 
-    //Destrutor
-    ~DadosAudio();
-
-
     // Bloqueio de cópia para prevenir double-free
     DadosAudio(const DadosAudio&) = delete;
     DadosAudio& operator=(const DadosAudio&) = delete;

@@ -1,21 +1,25 @@
 #include "dados_audio.hpp"
+#include <utility>  // necessário para usar std::move e transferir a propriedade do 
+                    // ponteiro inteligente recebido pelo construtor para o atributo audio.
 
 //Construtor
-DadosAudio::DadosAudio(const CabecalhoWav &cabecalho, int16_t *audio, uint32_t num_amostras) 
-    : cabecalho(cabecalho), audio(audio), num_amostras(num_amostras){  
+DadosAudio::DadosAudio(const CabecalhoWav &cabecalho,
+    std::unique_ptr<int16_t[]> audio, uint32_t num_amostras) 
+    : cabecalho(cabecalho), audio(std::move(audio)), num_amostras(num_amostras){  
 }
 
-//Destrutor: Libera a memória RAM alocada dinamicamente
-DadosAudio::~DadosAudio(){
-    if(audio != nullptr){
-        delete[] audio;
-        audio = nullptr;
-    }
-}
 //Getters
-//Retorna o ponteiro para o array dinâmico contendo as amostras de áudio na RAM
+//Retorna o ponteiro inteligente para o array dinâmico contendo as amostras de áudio na RAM
 int16_t* DadosAudio::get_audio() { 
-    return audio; 
+    return audio.get(); 
+}
+
+int16_t* DadosAudio::get_amostras() {      //retorna um ponteiro editável
+    return audio.get();
+}
+
+const int16_t* DadosAudio::get_amostras() const {    // Retorna um ponteiro somente para leitura.
+    return audio.get();
 }
 
 //Retorna a quantidade total de amostras de áudio armazenadas no vetor
