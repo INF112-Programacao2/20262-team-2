@@ -2,6 +2,7 @@
 #define DADOS_AUDIO_HPP
 
 #include <cstdint>
+#include <memory>
 #include "cabecalho_WAV.hpp"
 
 
@@ -9,13 +10,14 @@
 class DadosAudio {
 private:
     CabecalhoWav cabecalho;   // metadados (composição)
+
     //int16_t = tipo de variável que armazena dados binários
-    int16_t *audio;          //ponteiro pro vetor dinâmico
+    std::unique_ptr<int16_t[]> audio;   //ponteiro inteligente pro vetor dinâmico
     uint32_t num_amostras;       //quantidade de elementos do vetor
 
 public:
     //Construtor
-    DadosAudio(const CabecalhoWav &cabecalho, int16_t *audio, uint32_t num_amostras);
+    DadosAudio(const CabecalhoWav &cabecalho, std::unique_ptr<int16_t[]> audio, uint32_t num_amostras);
 
     //Destrutor
     ~DadosAudio();
