@@ -12,8 +12,8 @@ class FiltroRealceFreq : public FiltroAudio {
         double largura_faixa;                  //largura da faixa: quanto maior, mais estreita a faixa afetada
        
      public:
-        static const double largura_faixa_padrao = 1.0;
-        static const double ganho_max_db = 24.0; //limite de segurança para não estourar o áudio
+        static constexpr double largura_faixa_padrao = 1.0;
+        static constexpr double ganho_max_db = 24.0; //limite de segurança para não estourar o áudio
         
          //lança std::invalid_argument se algum parâmetro for inválido
         explicit FiltroRealceFreq(double frequencia_central, double ganho_db, double largura_faixa = largura_faixa_padrao);
@@ -24,6 +24,9 @@ class FiltroRealceFreq : public FiltroAudio {
         double get_frequencia_central() const; 
         double get_ganho_db() const;
         double get_largura_faixa() const;
+
+        std::string get_tipo() const override;
+        std::string get_parametros() const override;
 
 };
 
