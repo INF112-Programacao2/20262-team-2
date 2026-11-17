@@ -10,8 +10,8 @@ class FiltroLimpaRuido : public FiltroAudio {
     double corte_grave; //abaixo dessa frequencia o som eh atenuado
     double corte_agudo; //acima dessa frequencia o som eh atenuado
 
-    static const double PI = 3.14159265358979323846;
-    static const double Q_BUTTERWORTH = 0.70710678118654752440;
+    static constexpr double PI = 3.14159265358979323846;
+    static constexpr double Q_BUTTERWORTH = 0.70710678118654752440;
 
     struct Biquad { double b0, b1, b2, a1, a2; };          // coeficientes do filtro
     struct Estado { double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0; }; // memória de um canal
@@ -22,8 +22,8 @@ class FiltroLimpaRuido : public FiltroAudio {
 
     public:
 
-    static const double corte_grave_padrao = 300.0;
-    static const double corte_agudo_padrao = 3400.0;
+    static constexpr double corte_grave_padrao = 300.0;
+    static constexpr double corte_agudo_padrao = 3400.0;
 
     //construtor
     explicit FiltroLimpaRuido(double corte_grave_hz = corte_grave_padrao, double corte_agudo_hz = corte_agudo_padrao);

@@ -12,5 +12,3 @@ int16_t clipping (float valor) {
 
     return static_cast<int16_t>(valor); //retorna o valor float convertido para binário
 }
-
-static const uint32_t MAX_CANAIS = 8;
