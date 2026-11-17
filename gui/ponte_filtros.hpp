@@ -18,13 +18,11 @@ constexpr int LIMITE_FILTROS_CADEIA = 64;
 // true se já existe a classe do filtro no núcleo
 bool filtroDisponivel(TipoFiltro tipo);
 
-// O FiltroVolume recebe porcentagem (100 = sem mudança) e a tela usa dB
-double decibelsParaPorcentagem(int decibels);
+// O FiltroVolume recebe um multiplicador (1.0 = sem mudança) e a tela usa dB
+double decibelsParaMultiplicador(int decibels);
 
 struct CadeiaMontada {
-    // A CadeiaFiltros NÃO é dona dos filtros: quem cria precisa guardá-los e liberá-los.
-    std::vector<std::unique_ptr<FiltroAudio>> filtros;
-    // Declarada depois dos filtros, então é destruída antes deles
+    // A CadeiaFiltros é dona dos filtros (unique_ptr): ao destruí-la, eles são liberados.
     std::unique_ptr<CadeiaFiltros> cadeia;
     QStringList ignorados;   // filtros da lista que ainda não existem no núcleo
     QString erro;            // preenchido se algo impediu a montagem

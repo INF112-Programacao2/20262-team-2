@@ -388,7 +388,7 @@ void InterfaceGrafica::aoProcessar() {
         QMessageBox::critical(this, "Erro", montada.erro);
         return;
     }
-    if (montada.filtros.empty()) {
+    if (montada.cadeia->get_quantidade() == 0) {
         QMessageBox::warning(this, "Filtros indisponíveis",
             "Nenhum filtro da cadeia existe ainda no núcleo do projeto:\n\n- "
             + montada.ignorados.join("\n- "));
@@ -415,5 +415,5 @@ void InterfaceGrafica::aoProcessar() {
     statusBar()->showMessage(
         QString("Cadeia montada com %1 filtro(s) real(is) e %2 ignorado(s). "
                 "Falta o áudio carregado (GerenciadorArquivoWav) para processar.")
-            .arg(montada.filtros.size()).arg(montada.ignorados.size()));
+            .arg(montada.cadeia->get_quantidade()).arg(montada.ignorados.size()));
 }

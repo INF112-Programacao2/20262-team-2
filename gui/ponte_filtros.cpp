@@ -13,8 +13,8 @@ bool filtroDisponivel(TipoFiltro tipo) {
     }
 }
 
-double decibelsParaPorcentagem(int decibels) {
-    return 100.0 * std::pow(10.0, decibels / 20.0);
+double decibelsParaMultiplicador(int decibels) {
+    return std::pow(10.0, decibels / 20.0);
 }
 
 namespace {
@@ -46,7 +46,7 @@ CadeiaMontada montarCadeia(const QList<QVariantList> &itens) {
         switch (def.tipo) {
             case TipoFiltro::Volume:
                 filtro = std::make_unique<FiltroVolume>(
-                    decibelsParaPorcentagem(valorDoItem(dados, 1, def)));
+                    decibelsParaMultiplicador(valorDoItem(dados, 1, def)));
                 break;
             case TipoFiltro::LimpezaFala:
                 filtro = std::make_unique<FiltroLimpaRuido>();
@@ -59,11 +59,11 @@ CadeiaMontada montarCadeia(const QList<QVariantList> &itens) {
             resultado.ignorados << def.nome;
             continue;
         }
-        if (!resultado.cadeia->adicionar_filtro(filtro.get())) {
+        // a cadeia passa a ser a dona do filtro
+        if (!resultado.cadeia->adicionar_filtro(std::move(filtro))) {
             resultado.erro = QString("A cadeia aceita no máximo %1 filtros.").arg(LIMITE_FILTROS_CADEIA);
             return resultado;
         }
-        resultado.filtros.push_back(std::move(filtro));
     }
     return resultado;
 }
