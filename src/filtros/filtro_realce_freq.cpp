@@ -67,3 +67,23 @@ void FiltroRealceFreq::processar(DadosAudio &audio) {
         amostras[i] = clipping(static_cast<float>(y)); //mantém dentro do intervalo do int16
     }
 }
+
+double FiltroRealceFreq::get_frequencia_central() const { 
+    return frequencia_central; 
+}
+double FiltroRealceFreq::get_ganho_db() const { 
+    return ganho_db; 
+}
+double FiltroRealceFreq::get_largura_faixa() const { 
+    return largura_faixa;
+}
+
+std::string FiltroRealceFreq::get_tipo() const { 
+    return "RealceFrequencia"; 
+}
+
+std::string FiltroRealceFreq::get_parametros() const {
+    return "frequencia=" + std::to_string(frequencia_central) +
+           ",ganho_db=" + std::to_string(ganho_db) +
+           ",largura=" + std::to_string(largura_faixa);
+}
