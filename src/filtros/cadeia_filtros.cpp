@@ -124,6 +124,10 @@ std::string CadeiaFiltros::get_parametros() const {
     return "filtros=" + std::to_string(quantidade);
 }
 
+std::string CadeiaFiltros :: get_tipo() const {
+    return "Cadeia";
+}
+
 //analisa se o vetor da cadeia não está vazio e chama o método processar da classe do objeto no indice atual, ou seja, aplica filtros de forma encadeada
 void CadeiaFiltros::processar(DadosAudio &audio){
     for(uint32_t i =0; i < quantidade; i++){
