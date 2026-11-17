@@ -1,21 +1,34 @@
 #include "filtro_volume.hpp"
 #include "funcoes_auxiliares.hpp"
 #include <cstdint>
+#include <stdexcept>
 
 //construtor
- FiltroVolume :: FiltroVolume (double porcentagem) 
-: multiplicador(porcentagem/100.0) {}
-
-
+ FiltroVolume :: FiltroVolume (double multiplicador) 
+: multiplicador(multiplicador) {
+    if(multiplicador <0.0){
+        throw std::invalid_argument ("Fator de volume não pode ser negativo.");
+    }
+}
 
 void FiltroVolume :: processar(DadosAudio &audio) {
     int16_t* amostra_audio = audio.get_audio(); 
     uint32_t total_amostras = audio.get_num_amostras();
 
-    for(int i=0;i<total_amostras;i++){
-        double valor_processado = amostra_audio[i] * multiplicador; //aplica o multiplicador no volume
+    if (amostra_audio == nullptr)
+        return;
+    
 
-        amostra_audio[i] = clipping(valor_processado); //função auxiliar de clipping limita o som no intervalo correto
+    for(uint32_t i=0;i<total_amostras;i++){
+           amostra_audio[i] = clipping(static_cast<double>(amostra_audio[i]) * multiplicador); //aplica o clipping e o ganho
     }
-
 }
+
+std::string FiltroVolume::get_parametros() const {
+    return "multiplicador=" + std::to_string(multiplicador);
+}
+
+std::string FiltroVolume::get_tipo() const {
+    return "Volume";
+}
+

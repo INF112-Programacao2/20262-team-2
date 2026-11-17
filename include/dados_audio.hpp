@@ -1,8 +1,8 @@
-#ifndef DADOS_AUDIO_H
-#define DADOS_AUDIO_H
+#ifndef DADOS_AUDIO_HPP
+#define DADOS_AUDIO_HPP
 
-#include <cstddef>
 #include <cstdint>
+#include <memory>
 #include "cabecalho_WAV.hpp"
 
 
@@ -10,25 +10,34 @@
 class DadosAudio {
 private:
     CabecalhoWav cabecalho;   // metadados (composição)
+
     //int16_t = tipo de variável que armazena dados binários
-    int16_t *audio;          //ponteiro pro vetor dinâmico
+    std::unique_ptr<int16_t[]> audio;   //ponteiro inteligente pro vetor dinâmico
     uint32_t num_amostras;       //quantidade de elementos do vetor
 
 public:
     //Construtor
-    DadosAudio(const CabecalhoWav &cabecalho, int16_t *audio, uint32_t num_amostras);
+    DadosAudio(const CabecalhoWav &cabecalho, std::unique_ptr<int16_t[]> audio, uint32_t num_amostras);
 
-    //Destrutor
-    ~DadosAudio();
+    // Bloqueio de cópia para prevenir double-free
+    DadosAudio(const DadosAudio&) = delete;
+    DadosAudio& operator=(const DadosAudio&) = delete;
 
-    //Getter array dinâmico
-    int16_t* get_audio(); 
-    //Getter quantidade de elementos do array
+    // Getters de amostras
+    int16_t* get_amostras();
+    const int16_t* get_amostras() const;
+    int16_t* get_audio();
     uint32_t get_num_amostras() const;
-    //Getters que retornam o objeto cabecalhowav, assim pra utilizar um dado do cabecalho basta chamar o getter e colocar .variavel
-    CabecalhoWav& get_cabecalho(); //esse permite alteração dos dados
-    const CabecalhoWav& get_cabecalho()const; //esse permite apenas leitura e impede que o método modifique algo
 
+    // Getters de cabeçalho
+    CabecalhoWav& get_cabecalho();
+    const CabecalhoWav& get_cabecalho() const;
+
+    // Getters e Setters dos metadados para os filtros DSP
+    uint16_t get_num_canais() const;
+    uint32_t get_sample_rate() const;
+    void set_num_canais(uint16_t canais);
+    void set_sample_rate(uint32_t sample_rate);
 
 };
 
