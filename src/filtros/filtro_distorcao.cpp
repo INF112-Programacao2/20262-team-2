@@ -16,10 +16,8 @@ FiltroDistorcao::FiltroDistorcao (double drive, double limite, double reducao_vo
         }
     }
 
-//destrutor
-FiltroDistorcao::~FiltroDistorcao(){
+//destrutor é abstrato puro, fica como = 0 no hpp
 
-}
 
 void FiltroDistorcao::processar(DadosAudio &audio){
     int16_t* amostras = audio.get_audio();
