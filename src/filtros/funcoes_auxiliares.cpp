@@ -1,10 +1,9 @@
 #include"funcoes_auxiliares.hpp"
-#include<iostream>
 #include<cstdint>
 
 
 //função de clipping
-int16_t clipping (float valor) {
+int16_t clipping (double valor) {
     if (valor > 32767.0)
         return 32767;
     if (valor < -32768.0)

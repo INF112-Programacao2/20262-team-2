@@ -1,6 +1,8 @@
 #include"cadeia_filtros.hpp"
 #include<cstdint>
-#include<iostream>
+#include <utility>
+#include <string>
+
 
 //construtor
 CadeiaFiltros :: CadeiaFiltros(uint32_t capacidade_inicial)
@@ -55,7 +57,6 @@ bool CadeiaFiltros::adicionar_filtro(std::unique_ptr<FiltroAudio> filtro){
     
     //trava de segurança
     if(quantidade >= capacidade_max_filtros){
-        std::cerr << "Alerta: Limite máximo de filtros (" << capacidade_max_filtros << ") atingida!";
         return false;
     }
 

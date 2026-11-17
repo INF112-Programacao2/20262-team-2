@@ -7,7 +7,7 @@
  FiltroVolume :: FiltroVolume (double multiplicador) 
 : multiplicador(multiplicador) {
     if(multiplicador <0.0){
-        throw std::invalid_argument ("Fator de volume deve ser maior que 0.");
+        throw std::invalid_argument ("Fator de volume não pode ser negativo.");
     }
 }
 

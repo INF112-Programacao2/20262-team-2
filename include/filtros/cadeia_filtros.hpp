@@ -28,11 +28,11 @@ class CadeiaFiltros : public FiltroAudio {
         //função pra adicionar um filtro na cadeia
         bool adicionar_filtro(std::unique_ptr<FiltroAudio> filtro); //retorna bool para verificar se adicionou
 
-        bool remover_filtro(uint32_t indice);//nao deleta realmente o filtro, só tira da cadeia, retorna false se indice invalido
+        bool remover_filtro(uint32_t indice);//retorna false se indice invalido
 
         bool mover_filtro(uint32_t posicao_atual, uint32_t posicao_destino); //move o filtro usando o indice da posicao autal na cadeia e da posicao de destino
 
-        void limpar(); //esvazia a sequência (não deleta os filtros)
+        void limpar(); //esvazia a sequência
 
         uint32_t get_quantidade() const;
 

@@ -64,7 +64,7 @@ void FiltroRealceFreq::processar(DadosAudio &audio) {
         y2[c] = y1[c];
         y1[c] = y;
 
-        amostras[i] = clipping(static_cast<float>(y)); //mantém dentro do intervalo do int16
+        amostras[i] = clipping(static_cast<double>(y)); //mantém dentro do intervalo do int16
     }
 }
 
