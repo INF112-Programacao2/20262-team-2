@@ -32,6 +32,9 @@ public:
     int16_t* get_audio();
     uint32_t get_num_amostras() const;
 
+    //função que troca o vetor inteiro e atualiza o tamanho do bloco de dados no cabeçalhjo
+    void substituir_amostras(std::unique_ptr<int16_t[]> novas, uint32_t quantidade);
+
     // Getters de cabeçalho
     CabecalhoWav& get_cabecalho();
     const CabecalhoWav& get_cabecalho() const;
