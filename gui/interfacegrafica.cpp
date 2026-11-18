@@ -141,8 +141,12 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // ----- Ligações: processamento -----
     connect(botaoProcessar, &QPushButton::clicked, this, &InterfaceGrafica::aoProcessar);
     connect(campoEntrada, &QLineEdit::textChanged, this, [this]() {
-        arquivoCarregado = false;   // se o caminho mudou, é preciso carregar de novo
+        // Caminho alterado: o audio anterior nao representa mais a entrada selecionada.
+        audioCarregado.reset();
+        arquivoCarregado = false;
+        audioProcessado = false;
         atualizarEstado();
+        statusBar()->showMessage("Entrada alterada. Carregue o novo arquivo WAV.");
     });
 
     aoMudarFiltro(0);   // inicializa os sliders com o primeiro filtro
@@ -395,9 +399,9 @@ void InterfaceGrafica::atualizarBotoesCadeia() {
 // O botão Processar só fica ativo com um arquivo carregado e ao menos um filtro na cadeia.
 void InterfaceGrafica::atualizarEstado() {
     bool temCadeia = listaCadeia->count() > 0;
-    botaoProcessar->setEnabled(arquivoCarregado && temCadeia);
+    botaoProcessar->setEnabled(arquivoCarregado && audioCarregado && temCadeia);
 
-    if (!arquivoCarregado)
+    if (!arquivoCarregado || !audioCarregado)
         botaoProcessar->setToolTip("Carregue um arquivo .wav primeiro.");
     else if (!temCadeia)
         botaoProcessar->setToolTip("Adicione ao menos um filtro à cadeia.");
