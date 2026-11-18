@@ -174,6 +174,14 @@ void InterfaceGrafica::escolherSaida() {
 void InterfaceGrafica::carregar() {
     QString caminho = limparCaminho(campoEntrada->text());
 
+    // Antes de qualquer validacao, descarta o audio anterior.
+    // Assim, uma tentativa frustrada de carregamento nao deixa
+    // um resultado antigo disponivel para processamento/exportacao.
+    audioCarregado.reset();
+    arquivoCarregado = false;
+    audioProcessado = false;
+    atualizarEstado();
+
     if (caminho.isEmpty()) {
         QMessageBox::warning(this, "Atenção", "Escolha um arquivo de entrada.");
         return;
@@ -192,11 +200,6 @@ void InterfaceGrafica::carregar() {
         QMessageBox::warning(this, "Formato inválido", "O arquivo precisa ser .wav.");
         return;
     }
-
-    // Invalida o arquivo anterior para evitar processar dados desatualizados.
-    audioCarregado.reset();
-    arquivoCarregado = false;
-    atualizarEstado();
 
     try {
         auto novoAudio = GerenciadorArquivoWav::carregar(caminho.toStdString());
@@ -457,9 +460,26 @@ void InterfaceGrafica::aoProcessar() {
     for (int i = 0; i < quantidade; ++i)
         itens << listaCadeia->item(i)->data(Qt::UserRole).toList();
 
-    CadeiaMontada montada = montarCadeia(itens);
+    CadeiaMontada montada;
+    try {
+        montada = montarCadeia(itens);
+    } catch (const std::exception &erro) {
+        QMessageBox::critical(this, "Erro ao preparar filtros",
+                              QString::fromUtf8(erro.what()));
+        return;
+    } catch (...) {
+        QMessageBox::critical(this, "Erro ao preparar filtros",
+                              "Ocorreu um erro inesperado ao montar a cadeia.");
+        return;
+    }
+
     if (!montada.erro.isEmpty()) {
         QMessageBox::critical(this, "Erro", montada.erro);
+        return;
+    }
+    if (!montada.cadeia) {
+        QMessageBox::critical(this, "Erro ao preparar filtros",
+                              "Nao foi possivel criar a cadeia de filtros.");
         return;
     }
     if (montada.cadeia->get_quantidade() == 0) {
