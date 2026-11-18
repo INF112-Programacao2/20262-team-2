@@ -45,7 +45,7 @@ void DadosAudio::substituir_amostras(std::unique_ptr<int16_t[]> novas, uint32_t 
     }
     uint64_t bytes = static_cast<uint64_t>(quantidade) * sizeof(int16_t);
     if(bytes > std::numeric_limits<uint32_t>::max() - 36){
-        throw std::length_error("DadosAudio: audio grande demais para o formato WAV (limite de 4 GB)");
+        throw std::length_error("DadosAudio: audio é grande demais para o formato WAV (limite de 4 GB)");
     }
 
     audio = std::move(novas);
@@ -70,6 +70,10 @@ uint16_t DadosAudio::get_num_canais() const {
 
 uint32_t DadosAudio::get_sample_rate() const {
     return cabecalho.get_sample_rate();
+}
+
+uint16_t DadosAudio::get_bits_per_sample() const {
+    return cabecalho.get_bits_per_sample();
 }
 
 // --- Setters dos metadados ---
