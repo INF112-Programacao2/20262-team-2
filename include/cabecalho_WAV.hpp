@@ -32,12 +32,16 @@ class CabecalhoWav{
 
     //Função que recalcula os campos dependentes para manter o cabeçalho sempre coerente
         void recalcular_derivados();
+
     public:
         CabecalhoWav();
+        ~CabecalhoWav();
 
-    // Preenche os campos a partir de um buffer bruto de 44 bytes lido do arquivo.
-    // Retorna true se o cabecalho for valido (RIFF/WAVE/fmt /data), false caso contrario.
-    bool e_valida(const char *buffer);
+       
+    //Validação dos marcadores (de História 1)
+    bool e_valido() const;      //confere "RIFF", "WAVE", "fmt " e "data" e o fmtSize == 16.
+    bool e_suportado() const;   //confere se é PCM de 16 bits com blockAlign coerente
+
 
     // Getters -- somente leitura, ninguem de fora altera um cabecalho ja lido
     uint16_t get_num_de_canais() const;
@@ -46,6 +50,8 @@ class CabecalhoWav{
     uint32_t get_subchunk2_size() const;
     uint16_t get_audio_format() const;
     uint16_t get_block_align() const;
+    uint32_t get_byte_rate() const;
+    uint32_t get_tamanho_arquivo() const;
 
     // Setters
     void set_num_de_canais(uint16_t canais);
