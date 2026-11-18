@@ -203,6 +203,7 @@ void InterfaceGrafica::carregar() {
         }
 
         audioCarregado = std::move(novoAudio);
+        audioProcessado = false;
         arquivoCarregado = true;
         atualizarEstado();
         statusBar()->showMessage("Arquivo carregado: " + caminho);
@@ -216,6 +217,12 @@ void InterfaceGrafica::carregar() {
 }
 
 void InterfaceGrafica::exportar() {
+    if (!audioCarregado || !audioProcessado) {
+        QMessageBox::warning(this, "Atenção",
+                             "Carregue e processe um arquivo WAV antes de exportar.");
+        return;
+    }
+
     QString caminho = limparCaminho(campoSaida->text());
 
     if (caminho.isEmpty()) {
@@ -254,8 +261,16 @@ void InterfaceGrafica::exportar() {
             return;
     }
 
-    // TODO: chamar a exportação do GerenciadorArquivoWav aqui, dentro de try/catch
-    statusBar()->showMessage("Exportado para: " + caminho);
+    try {
+        GerenciadorArquivoWav::exportar(caminho.toStdString(), *audioCarregado);
+        statusBar()->showMessage("Exportado para: " + caminho);
+    } catch (const std::exception &erro) {
+        QMessageBox::critical(this, "Erro ao exportar WAV",
+                              QString::fromUtf8(erro.what()));
+    } catch (...) {
+        QMessageBox::critical(this, "Erro ao exportar WAV",
+                              "Ocorreu um erro inesperado durante a exportação.");
+    }
 }
 
 // ---------- Filtros ----------
@@ -399,7 +414,7 @@ void InterfaceGrafica::definirOcupado(bool ocupado) {
 
 void InterfaceGrafica::aoProcessar() {
     int quantidade = listaCadeia->count();
-    if (!arquivoCarregado || quantidade == 0) {   // proteção extra: o botão já deveria estar desabilitado
+    if (!arquivoCarregado || !audioCarregado || quantidade == 0) {   // proteção extra: o botão já deveria estar desabilitado
         QMessageBox::warning(this, "Atenção",
             "Carregue um arquivo .wav e adicione ao menos um filtro à cadeia.");
         return;
@@ -432,15 +447,28 @@ void InterfaceGrafica::aoProcessar() {
     }
 
     definirOcupado(true);
+    audioProcessado = false;
 
-    // TODO: quando o GerenciadorArquivoWav::carregar existir, guardar o DadosAudio devolvido
-    //       (std::unique_ptr<DadosAudio>) e processar aqui, dentro de try/catch:
-    //           montada.cadeia->processar(*audioCarregado);
-    //       mostrando erros com QMessageBox::critical.
+    try {
+        montada.cadeia->processar(*audioCarregado);
+        audioProcessado = true;
+        statusBar()->showMessage(
+            QString("Áudio processado com %1 filtro(s); %2 ignorado(s). Pronto para exportar.")
+                .arg(montada.cadeia->get_quantidade()).arg(montada.ignorados.size()));
+    } catch (const std::exception &erro) {
+        // O núcleo pode ter alterado parte das amostras antes de lançar a exceção.
+        // Invalida o áudio para impedir a exportação de um resultado incompleto.
+        audioCarregado.reset();
+        arquivoCarregado = false;
+        QMessageBox::critical(this, "Erro ao processar áudio",
+                              QString::fromUtf8(erro.what()) +
+                              "\nCarregue o arquivo novamente antes de processar.");
+    } catch (...) {
+        audioCarregado.reset();
+        arquivoCarregado = false;
+        QMessageBox::critical(this, "Erro ao processar áudio",
+                              "Falha inesperada. Carregue o arquivo novamente antes de processar.");
+    }
 
     definirOcupado(false);
-    statusBar()->showMessage(
-        QString("Cadeia montada com %1 filtro(s) real(is) e %2 ignorado(s). "
-                "Falta o áudio carregado (GerenciadorArquivoWav) para processar.")
-            .arg(montada.cadeia->get_quantidade()).arg(montada.ignorados.size()));
 }

@@ -59,4 +59,5 @@ private:
     QPushButton *botaoProcessar;
     std::unique_ptr<DadosAudio> audioCarregado;
     bool arquivoCarregado = false;
+    bool audioProcessado = false;
 };
