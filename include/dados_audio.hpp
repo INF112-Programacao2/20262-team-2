@@ -19,6 +19,9 @@ public:
     //Construtor
     DadosAudio(const CabecalhoWav &cabecalho, std::unique_ptr<int16_t[]> audio, uint32_t num_amostras);
 
+    //Destrutor (a liberação do vetor é feita pelo unique_ptr)
+    ~DadosAudio();
+
     // Bloqueio de cópia para prevenir double-free
     DadosAudio(const DadosAudio&) = delete;
     DadosAudio& operator=(const DadosAudio&) = delete;
@@ -29,6 +32,9 @@ public:
     int16_t* get_audio();
     uint32_t get_num_amostras() const;
 
+    //função que troca o vetor inteiro e atualiza o tamanho do bloco de dados no cabeçalhjo
+    void substituir_amostras(std::unique_ptr<int16_t[]> novas, uint32_t quantidade);
+
     // Getters de cabeçalho
     CabecalhoWav& get_cabecalho();
     const CabecalhoWav& get_cabecalho() const;
@@ -36,6 +42,7 @@ public:
     // Getters e Setters dos metadados para os filtros DSP
     uint16_t get_num_canais() const;
     uint32_t get_sample_rate() const;
+    uint16_t get_bits_per_sample() const;
     void set_num_canais(uint16_t canais);
     void set_sample_rate(uint32_t sample_rate);
 
