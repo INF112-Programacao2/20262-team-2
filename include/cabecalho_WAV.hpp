@@ -1,11 +1,17 @@
 #ifndef CABECALHO_HPP
 #define CABECALHO_HPP
 
-#include <cstdint>
+#include <cstddef> //Pra std::size_t (usado para representar tamanhos em bytes)
+#include <cstdint> //Garante inteiros com tamanho exatro em bytes (uint16_t, uint32_t)
 #include <string>
 
+//Tamanho fixo, em bytes, do cabeçalho de um .wav PCM simples.
+constexpr std::size_t TAMANHO_CABECALHO_WAV = 44;
+
+
 // CabecalhoWav: representa os metadados fixos (44 bytes) de um arquivo .wav
-// TAD simples, apenas guarda o que foi lido do arquivo e expoe getters.
+// Os campos ficam na MESMA ordem do arquivo (pack(1), sem espaços entre
+// eles), por isso o objeto inteiro pode ser lido/gravado com read()/write().
 #pragma pack(push, 1)
 class CabecalhoWav{
     private:
@@ -24,6 +30,8 @@ class CabecalhoWav{
     char dataID[4];            // Bytes 36-39: Guarda os caracteres ASCII "data", indica que a ficha técnica terminou e que o bloco de áudio real começa a seguir
     uint32_t dataSize;         // Bytes 40-43: Tamanho total do som/das amostras em bytes
 
+    //Função que recalcula os campos dependentes para manter o cabeçalho sempre coerente
+        void recalcular_derivados();
     public:
         CabecalhoWav();
 
