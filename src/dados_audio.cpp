@@ -1,11 +1,22 @@
 #include "dados_audio.hpp"
-#include <utility>  // necessário para usar std::move e transferir a propriedade do 
-                    // ponteiro inteligente recebido pelo construtor para o atributo audio.
+
+#include <limits>  //Usado pra consultar os valores máximos e mínimos que cada tipo 
+                   //numérico suporta na memória (através de std::numeric_limits)
+#include <stdexcept>   //Fornece as classes padrão de exceções para interromper o programa 
+#include <utility> //Necessário para usar std::move e transferir a propriedade do 
+                   //ponteiro inteligente recebido pelo construtor para o atributo audio.
 
 //Construtor
 DadosAudio::DadosAudio(const CabecalhoWav &cabecalho,
     std::unique_ptr<int16_t[]> audio, uint32_t num_amostras) 
     : cabecalho(cabecalho), audio(std::move(audio)), num_amostras(num_amostras){  
+    if(this->audio == nullptr && num_amostras > 0){
+        throw std::invalid_argument("DadosAudio: vetor de amostras nulo, mas num_amostras > 0");
+    }
+}
+
+//Destrutor: mas não há nada pra liberar manualmente, o unique_ptr (ponteiro inteligente) libera o vetor sozinho
+DadosAudio::~DadosAudio(){
 }
 
 //Getters
