@@ -37,6 +37,7 @@ private:
     void atualizarBotoesCadeia();
     void atualizarEstado();
     void definirOcupado(bool ocupado);
+    bool invalidarAudioAposAlterarCadeia();
 
     // Arquivos
     QLineEdit *campoEntrada;

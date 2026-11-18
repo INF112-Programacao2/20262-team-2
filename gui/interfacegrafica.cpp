@@ -339,9 +339,12 @@ void InterfaceGrafica::aoAdicionarFiltro() {
     item->setData(Qt::UserRole, dados);
     listaCadeia->setCurrentItem(item);
 
+    const bool recarregar = invalidarAudioAposAlterarCadeia();
     atualizarBotoesCadeia();
     atualizarEstado();
-    if (filtroDisponivel(f.tipo))
+    if (recarregar)
+        statusBar()->showMessage("Cadeia alterada. Recarregue o WAV antes de processar novamente.");
+    else if (filtroDisponivel(f.tipo))
         statusBar()->showMessage(QString("Filtro adicionado. Cadeia com %1 filtro(s).").arg(listaCadeia->count()));
     else
         statusBar()->showMessage("Filtro adicionado, mas ele ainda não existe no núcleo e será ignorado ao processar.");
@@ -355,9 +358,12 @@ void InterfaceGrafica::aoRemoverFiltro() {
     if (listaCadeia->count() > 0)
         listaCadeia->setCurrentRow(qMin(linha, listaCadeia->count() - 1));
 
+    const bool recarregar = invalidarAudioAposAlterarCadeia();
     atualizarBotoesCadeia();
     atualizarEstado();
-    statusBar()->showMessage("Filtro removido.");
+    statusBar()->showMessage(recarregar
+        ? "Cadeia alterada. Recarregue o WAV antes de processar novamente."
+        : "Filtro removido.");
 }
 
 void InterfaceGrafica::aoLimparCadeia() {
@@ -370,9 +376,12 @@ void InterfaceGrafica::aoLimparCadeia() {
         return;
 
     listaCadeia->clear();
+    const bool recarregar = invalidarAudioAposAlterarCadeia();
     atualizarBotoesCadeia();
     atualizarEstado();
-    statusBar()->showMessage("Cadeia limpa.");
+    statusBar()->showMessage(recarregar
+        ? "Cadeia alterada. Recarregue o WAV antes de processar novamente."
+        : "Cadeia limpa.");
 }
 
 void InterfaceGrafica::moverFiltro(int delta) {
@@ -384,6 +393,23 @@ void InterfaceGrafica::moverFiltro(int delta) {
     QListWidgetItem *item = listaCadeia->takeItem(linha);
     listaCadeia->insertItem(destino, item);
     listaCadeia->setCurrentRow(destino);
+    const bool recarregar = invalidarAudioAposAlterarCadeia();
+    atualizarBotoesCadeia();
+    atualizarEstado();
+    if (recarregar)
+        statusBar()->showMessage("Ordem alterada. Recarregue o WAV antes de processar novamente.");
+}
+
+// O processamento modifica o áudio em memória. Depois de alterar a cadeia,
+// não podemos aplicar outra cadeia sobre o resultado anterior nem exportá-lo.
+bool InterfaceGrafica::invalidarAudioAposAlterarCadeia() {
+    if (!audioProcessado)
+        return false;
+
+    audioCarregado.reset();
+    arquivoCarregado = false;
+    audioProcessado = false;
+    return true;
 }
 
 void InterfaceGrafica::atualizarBotoesCadeia() {
@@ -399,12 +425,14 @@ void InterfaceGrafica::atualizarBotoesCadeia() {
 // O botão Processar só fica ativo com um arquivo carregado e ao menos um filtro na cadeia.
 void InterfaceGrafica::atualizarEstado() {
     bool temCadeia = listaCadeia->count() > 0;
-    botaoProcessar->setEnabled(arquivoCarregado && audioCarregado && temCadeia);
+    botaoProcessar->setEnabled(arquivoCarregado && audioCarregado && temCadeia && !audioProcessado);
 
     if (!arquivoCarregado || !audioCarregado)
         botaoProcessar->setToolTip("Carregue um arquivo .wav primeiro.");
     else if (!temCadeia)
         botaoProcessar->setToolTip("Adicione ao menos um filtro à cadeia.");
+    else if (audioProcessado)
+        botaoProcessar->setToolTip("Áudio já processado. Recarregue o WAV para processar novamente.");
     else
         botaoProcessar->setToolTip("");
 }
