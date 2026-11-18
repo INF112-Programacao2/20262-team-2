@@ -3,7 +3,7 @@
 
 #include <cstddef> //Pra std::size_t (usado para representar tamanhos em bytes)
 #include <cstdint> //Garante inteiros com tamanho exatro em bytes (uint16_t, uint32_t)
-#include <string>
+
 
 //Tamanho fixo, em bytes, do cabeçalho de um .wav PCM simples.
 constexpr std::size_t TAMANHO_CABECALHO_WAV = 44;
@@ -17,7 +17,7 @@ class CabecalhoWav{
     private:
 
     char riffID[4];            // Bytes 0-3: Guarda os caracteres ASCII "RIFF", identificador do tipo de arquivo
-    uint32_t tamanho_arquivo;  // Bytes 4-7: Armazena o tamanho total do ficheiro em bytes
+    uint32_t tamanho_arquivo;  // Bytes 4-7: (Tamanho do arquivo em bytes) - (8), (36 + dataSize)
     char waveID[4];            // Bytes 8-11: Guarda os caracteres ASCII "WAVE", confirma que o formato do áudio dentro do bloco RIFF é um ficheiro WAV
     char fmtID[4];             // Bytes 12-15: Guarda os caracteres ASCII "fmt ", marca o início do sub-bloco de formatação técnica do áudio
     uint32_t fmtSize;          // Bytes 16-19: Define o tamanho em bytes das informações de formato
@@ -60,4 +60,10 @@ class CabecalhoWav{
 
 };
 #pragma pack(pop)
+
+//Garante que o objeto tem exatamente 44 bytes
+static_assert(sizeof(CabecalhoWav) == TAMANHO_CABECALHO_WAV,
+              "O CabecalhoWav deve ter exatamente 44 bytes");
+
+
 #endif
