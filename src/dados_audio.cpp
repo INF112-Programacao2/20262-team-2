@@ -38,6 +38,21 @@ uint32_t DadosAudio::get_num_amostras() const {
     return num_amostras; 
 }
 
+//Troca o vetor: o antigo é liberado automaticamente ao receber o novo
+void DadosAudio::substituir_amostras(std::unique_ptr<int16_t[]> novas, uint32_t quantidade){
+    if(novas == nullptr && quantidade > 0){
+        throw std::invalid_argument("DadosAudio: vetor de amostras nulo, mas quantidade > 0");
+    }
+    uint64_t bytes = static_cast<uint64_t>(quantidade) * sizeof(int16_t);
+    if(bytes > std::numeric_limits<uint32_t>::max() - 36){
+        throw std::length_error("DadosAudio: audio grande demais para o formato WAV (limite de 4 GB)");
+    }
+
+    audio = std::move(novas);
+    num_amostras = quantidade;
+    cabecalho.set_subchunk2_size(static_cast<uint32_t>(bytes));
+}
+
 //Retorna uma referencia editável do cabeçalho, vai permitir alterar os metadados 
 CabecalhoWav& DadosAudio::get_cabecalho() { 
     return cabecalho; 
