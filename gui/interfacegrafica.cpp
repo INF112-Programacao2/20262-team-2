@@ -1,6 +1,11 @@
 #include "interfacegrafica.hpp"
 #include "catalogo_filtros.hpp"
 #include "ponte_filtros.hpp"
+#include "gerenciador_arquivo_WAV.hpp"
+#include "dados_audio.hpp"
+#include <exception>
+#include <memory>
+#include <utility>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -30,6 +35,8 @@ QString limparCaminho(QString caminho) {
 }
 
 } // namespace
+
+InterfaceGrafica::~InterfaceGrafica() = default;
 
 InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle("Processador de Áudio");
@@ -182,10 +189,30 @@ void InterfaceGrafica::carregar() {
         return;
     }
 
-    // TODO: chamar o GerenciadorArquivoWav aqui (caminho.toStdString())
-    arquivoCarregado = true;
+    // Invalida o arquivo anterior para evitar processar dados desatualizados.
+    audioCarregado.reset();
+    arquivoCarregado = false;
     atualizarEstado();
-    statusBar()->showMessage("Arquivo carregado: " + caminho);
+
+    try {
+        auto novoAudio = GerenciadorArquivoWav::carregar(caminho.toStdString());
+        if (!novoAudio) {
+            QMessageBox::critical(this, "Erro ao carregar WAV",
+                                  "O gerenciador não retornou um áudio válido.");
+            return;
+        }
+
+        audioCarregado = std::move(novoAudio);
+        arquivoCarregado = true;
+        atualizarEstado();
+        statusBar()->showMessage("Arquivo carregado: " + caminho);
+    } catch (const std::exception &erro) {
+        QMessageBox::critical(this, "Erro ao carregar WAV",
+                              QString::fromUtf8(erro.what()));
+    } catch (...) {
+        QMessageBox::critical(this, "Erro ao carregar WAV",
+                              "Ocorreu um erro inesperado durante o carregamento.");
+    }
 }
 
 void InterfaceGrafica::exportar() {

@@ -1,5 +1,8 @@
 #pragma once
 #include <QMainWindow>
+#include <memory>
+
+class DadosAudio;
 
 class QLineEdit;
 class QComboBox;
@@ -13,6 +16,7 @@ class InterfaceGrafica : public QMainWindow {
 
 public:
     explicit InterfaceGrafica(QWidget *parent = nullptr);
+    ~InterfaceGrafica() override;
 
 private slots:
     void escolherEntrada();
@@ -53,5 +57,6 @@ private:
 
     // Processamento
     QPushButton *botaoProcessar;
+    std::unique_ptr<DadosAudio> audioCarregado;
     bool arquivoCarregado = false;
 };
