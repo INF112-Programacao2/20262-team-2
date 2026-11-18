@@ -16,10 +16,19 @@ FormatoWavInvalido::FormatoWavInvalido(const std::string& motivo)
 
 FormatoWavInvalido::~FormatoWavInvalido() noexcept {}
 
+CaminhoInvalido::CaminhoInvalido(const std::string& motivo)
+    : ExcecaoWav("Erro: caminho invalido: " + motivo) {}
 
+CaminhoInvalido::~CaminhoInvalido() noexcept {}
 
+ArquivoJaExiste::ArquivoJaExiste(const std::string& caminho)
+    : ExcecaoWav("Erro: o arquivo ja existe (use a opcao de sobrescrever): " + caminho) {}
 
+ArquivoJaExiste::~ArquivoJaExiste() noexcept {}
 
+ErroAcessoArquivo::ErroAcessoArquivo(const std::string& mensagem)
+    : ExcecaoWav("Erro de acesso ao arquivo: " + mensagem) {}
 
+ErroAcessoArquivo::~ErroAcessoArquivo() noexcept {}
 
 
