@@ -16,11 +16,24 @@ CabecalhoWav::CabecalhoWav()
 CabecalhoWav::~CabecalhoWav(){
 }
 
-// Função que carrega os dados do cabeçalhoWAV a partir de um buffer (retornando true pra permitir compilar)
-bool CabecalhoWav::e_valida(const char *buffer) {
-    (void)buffer;
-    return true;
+void CabecalhoWav::recalcular_derivados(){
+    blockAlign = static_cast<uint16_t>(num_de_canais * (bitsPerSample / 8));  //blockAlign = canais * bytes por amostra
+    byteRate = sampleRate * blockAlign;  // byteRate = taxa * canais * bytes por amostra
+    tamanho_arquivo = 36 + dataSize;     // tamanho_arquivo = tudo que vem dep´ois dos 8 primeiros bytes (36 de cabeçalho + dados)
 }
+
+//História 1: marcadores obrigatórios do formato .wav
+bool CabecalhoWav::e_valido() const {
+    return std::memcmp(riffID, "RIFF", 4) == 0 && std::memcmp(waveID, "WAVE", 4) == 0 && std::memcmp(fmtID, "fmt ", 4) == 0 && 
+           std::memcmp(dataID, "data", 4) == 0 && fmtSize == 16; 
+}
+
+//DadosAudio guarda anmostras int16_t, só PCM de 16 bits que vai servir   
+bool CabecalhoWav::e_suportado() const {
+    return formato_audio == 1 && bitsPerSample == 16 &&
+           num_de_canais >= 1 && blockAlign == num_de_canais * (bitsPerSample / 8);
+}
+
 
 // Getters
 uint16_t CabecalhoWav::get_num_de_canais() const {
