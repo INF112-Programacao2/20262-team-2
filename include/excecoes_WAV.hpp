@@ -6,6 +6,10 @@
 
 //Hierarquia de exceções do módulo de leitura/gravação de arquivos .wav
 
+// Todas classes herdam de ExcecaoWav (que herda de std::runtime_error), entrão quem
+// chama pode tratar qualquer erro de leitura/gravação com um único catch (const ExcecaoWav&) ou pode
+// distinguir cada caso capturando a exceção específica (ex.: ArquivoJaExiste)
+
 //Base de todas as exceções do módulo WAV
 class ExcecaoWav : public std::runtime_error {
 public:
@@ -47,4 +51,15 @@ public:
     ~ArquivoJaExiste() noexcept override;
 };
 
+//------------------------------------//
+
+// Falha de permissão, de abertura ou de leitrura/gravação (ex.: disco cheio)
+class ErroAcessoArquivo : public ExcecaoWav {
+public:
+    explicit ErroAcessoArquivo(const std::string& mensagem);
+    ~ErroAcessoArquivo() noexcept override;
+};
+
+
 #endif
+
