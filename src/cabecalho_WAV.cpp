@@ -1,10 +1,21 @@
 #include "cabecalho_WAV.hpp"
 
-CabecalhoWav::CabecalhoWav()          //Construtor
-    : tamanho_arquivo(0), fmtSize(16), formato_audio(1),
+#include <cstring>
+
+//Construtor que já cria um cabeçalho válido (PCM, 16 bits, estéreo, 44100 Hz, sem dados)
+CabecalhoWav::CabecalhoWav()          
+    : tamanho_arquivo(36), fmtSize(16), formato_audio(1),
       num_de_canais(2), sampleRate(44100), byteRate(176400),
       blockAlign(4), bitsPerSample(16), dataSize(0){
+    std::memcpy(riffID, "RIFF", 4);
+    std::memcpy(waveID, "WAVE", 4);
+    std::memcpy(fmtID, "fmt ", 4);
+    std::memcpy(dataID, "data", 4);
 }
+
+CabecalhoWav::~CabecalhoWav(){
+}
+
 // Função que carrega os dados do cabeçalhoWAV a partir de um buffer (retornando true pra permitir compilar)
 bool CabecalhoWav::e_valida(const char *buffer) {
     (void)buffer;
