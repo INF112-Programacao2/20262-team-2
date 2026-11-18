@@ -60,15 +60,26 @@ uint16_t CabecalhoWav::get_block_align() const {
     return blockAlign;
 }
 
+uint32_t CabecalhoWav::get_byte_rate() const {
+    return byteRate;
+}
+
+uint32_t CabecalhoWav::get_tamanho_arquivo() const {
+    return tamanho_arquivo;
+}
+
 // Setters
 void CabecalhoWav::set_num_de_canais(uint16_t canais) {
     num_de_canais = canais;
+    recalcular_derivados();
 }
 
 void CabecalhoWav::set_sample_rate(uint32_t sr) {
     sampleRate = sr;
+    recalcular_derivados();
 }
 
 void CabecalhoWav::set_subchunk2_size(uint32_t size) {
     dataSize = size;
+    recalcular_derivados();
 }
