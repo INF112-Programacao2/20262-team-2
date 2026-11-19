@@ -7,6 +7,9 @@
 #include <memory>
 #include <utility>
 #include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
@@ -18,6 +21,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSlider>
+#include <QSpinBox>
 #include <QStatusBar>
 #include <QStringList>
 #include <QVariantList>
@@ -32,6 +36,17 @@ QString limparCaminho(QString caminho) {
     if (caminho.size() >= 2 && caminho.startsWith('"') && caminho.endsWith('"'))
         caminho = caminho.mid(1, caminho.size() - 2);
     return caminho.trimmed();
+}
+
+// Texto exibido na cadeia, sempre derivado dos parametros salvos no item.
+QString descricaoDoFiltro(const FiltroDef &f, const QVariantList &dados) {
+    QStringList partes;
+    for (int i = 0; i < f.parametros.size(); ++i) {
+        const ParametroDef &p = f.parametros[i];
+        const int valor = i + 1 < dados.size() ? dados[i + 1].toInt() : p.padrao;
+        partes << p.nome + ": " + QString::number(valor) + p.unidade;
+    }
+    return partes.isEmpty() ? f.nome : f.nome + " (" + partes.join(", ") + ")";
 }
 
 } // namespace
@@ -90,7 +105,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     grade->setColumnStretch(1, 1);
     layoutFiltros->addLayout(grade);
 
-    QPushButton *botaoAdicionar = new QPushButton("Adicionar à cadeia", grupoFiltros);
+    botaoAdicionar = new QPushButton("Adicionar à cadeia", grupoFiltros);
     layoutFiltros->addWidget(botaoAdicionar);
     layout->addWidget(grupoFiltros);
 
@@ -104,10 +119,12 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     QHBoxLayout *botoesCadeia = new QHBoxLayout();
     botaoSubir   = new QPushButton("Subir", grupoCadeia);
     botaoDescer  = new QPushButton("Descer", grupoCadeia);
+    botaoEditar  = new QPushButton("Editar parâmetros", grupoCadeia);
     botaoRemover = new QPushButton("Remover", grupoCadeia);
     botaoLimpar  = new QPushButton("Limpar tudo", grupoCadeia);
     botoesCadeia->addWidget(botaoSubir);
     botoesCadeia->addWidget(botaoDescer);
+    botoesCadeia->addWidget(botaoEditar);
     botoesCadeia->addWidget(botaoRemover);
     botoesCadeia->addWidget(botaoLimpar);
     layoutCadeia->addLayout(botoesCadeia);
@@ -133,6 +150,9 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // ----- Ligações: cadeia -----
     connect(botaoAdicionar, &QPushButton::clicked, this, &InterfaceGrafica::aoAdicionarFiltro);
     connect(botaoRemover,   &QPushButton::clicked, this, &InterfaceGrafica::aoRemoverFiltro);
+    connect(botaoEditar,    &QPushButton::clicked, this, &InterfaceGrafica::aoEditarFiltro);
+    connect(listaCadeia, &QListWidget::itemDoubleClicked, this,
+            [this](QListWidgetItem *) { aoEditarFiltro(); });
     connect(botaoLimpar,    &QPushButton::clicked, this, &InterfaceGrafica::aoLimparCadeia);
     connect(botaoSubir,     &QPushButton::clicked, this, [this]() { moverFiltro(-1); });
     connect(botaoDescer,    &QPushButton::clicked, this, [this]() { moverFiltro(+1); });
@@ -282,8 +302,15 @@ void InterfaceGrafica::exportar() {
 
 // ---------- Filtros ----------
 void InterfaceGrafica::aoMudarFiltro(int indice) {
-    if (indice < 0) return;
+    if (indice < 0 || indice >= catalogoFiltros().size()) {
+        botaoAdicionar->setEnabled(false);
+        return;
+    }
     const FiltroDef &f = catalogoFiltros()[indice];
+    const bool disponivel = filtroDisponivel(f.tipo);
+    botaoAdicionar->setEnabled(disponivel);
+    botaoAdicionar->setToolTip(disponivel ? QString() :
+        "Filtro ainda nao implementado pelo nucleo. Nao pode ser adicionado.");
 
     for (int i = 0; i < 2; ++i) {
         bool usado = i < f.parametros.size();
@@ -314,8 +341,13 @@ void InterfaceGrafica::atualizarValor(int i) {
 // ---------- Cadeia de filtros ----------
 void InterfaceGrafica::aoAdicionarFiltro() {
     int indice = comboFiltros->currentIndex();
-    if (indice < 0) return;
+    if (indice < 0 || indice >= catalogoFiltros().size()) return;
     const FiltroDef &f = catalogoFiltros()[indice];
+    if (!filtroDisponivel(f.tipo)) {
+        QMessageBox::information(this, "Filtro indisponivel",
+                                 "Este filtro ainda nao esta implementado no nucleo.");
+        return;
+    }
 
     if (listaCadeia->count() >= LIMITE_FILTROS_CADEIA) {
         QMessageBox::warning(this, "Limite da cadeia",
@@ -327,18 +359,10 @@ void InterfaceGrafica::aoAdicionarFiltro() {
     // (é daqui que a CadeiaFiltros real será montada depois)
     QVariantList dados;
     dados << indice;
-    QStringList partes;
-    for (int i = 0; i < f.parametros.size(); ++i) {
-        int v = slider[i]->value();
-        dados << v;
-        partes << f.parametros[i].nome + ": " + QString::number(v) + f.parametros[i].unidade;
-    }
+    for (int i = 0; i < f.parametros.size(); ++i)
+        dados << slider[i]->value();
 
-    QString texto = f.nome;
-    if (!partes.isEmpty())
-        texto += " (" + partes.join(", ") + ")";
-
-    QListWidgetItem *item = new QListWidgetItem(texto, listaCadeia);   // a lista é a dona do item
+    QListWidgetItem *item = new QListWidgetItem(descricaoDoFiltro(f, dados), listaCadeia);
     item->setData(Qt::UserRole, dados);
     listaCadeia->setCurrentItem(item);
 
@@ -351,6 +375,56 @@ void InterfaceGrafica::aoAdicionarFiltro() {
         statusBar()->showMessage(QString("Filtro adicionado. Cadeia com %1 filtro(s).").arg(listaCadeia->count()));
     else
         statusBar()->showMessage("Filtro adicionado, mas ele ainda não existe no núcleo e será ignorado ao processar.");
+}
+
+// Edita um filtro ja adicionado, sem alterar os outros itens da cadeia.
+void InterfaceGrafica::aoEditarFiltro() {
+    QListWidgetItem *item = listaCadeia->currentItem();
+    if (!item) return;
+
+    const QVariantList dados = item->data(Qt::UserRole).toList();
+    const int indice = dados.isEmpty() ? -1 : dados[0].toInt();
+    if (indice < 0 || indice >= catalogoFiltros().size()) {
+        QMessageBox::warning(this, "Filtro invalido", "O item selecionado e invalido.");
+        return;
+    }
+
+    const FiltroDef &f = catalogoFiltros()[indice];
+    if (!filtroDisponivel(f.tipo) || f.parametros.isEmpty()) return;
+
+    QDialog dialog(this);
+    dialog.setWindowTitle("Editar parametros - " + f.nome);
+    QFormLayout formulario(&dialog);
+    QVector<QSpinBox *> entradas;
+    for (int i = 0; i < f.parametros.size(); ++i) {
+        const ParametroDef &p = f.parametros[i];
+        auto *controle = new QSpinBox(&dialog);
+        controle->setRange(p.min, p.max);
+        controle->setSuffix(p.unidade);
+        controle->setValue(i + 1 < dados.size() ? dados[i + 1].toInt() : p.padrao);
+        formulario.addRow(p.nome + ":", controle);
+        entradas << controle;
+    }
+
+    QDialogButtonBox acoes(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    formulario.addRow(&acoes);
+    connect(&acoes, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(&acoes, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    if (dialog.exec() != QDialog::Accepted) return;
+
+    QVariantList novosDados;
+    novosDados << indice;
+    for (QSpinBox *controle : entradas)
+        novosDados << controle->value();
+    if (novosDados == dados) return;
+
+    item->setData(Qt::UserRole, novosDados);
+    item->setText(descricaoDoFiltro(f, novosDados));
+    const bool recarregar = invalidarAudioAposAlterarCadeia();
+    atualizarEstado();
+    statusBar()->showMessage(recarregar
+        ? "Parametros alterados. Recarregue o WAV antes de processar novamente."
+        : "Parametros do filtro atualizados.");
 }
 
 void InterfaceGrafica::aoRemoverFiltro() {
@@ -422,6 +496,17 @@ void InterfaceGrafica::atualizarBotoesCadeia() {
     botaoDescer->setEnabled(linha >= 0 && linha < total - 1);
     botaoRemover->setEnabled(linha >= 0);
     botaoLimpar->setEnabled(total > 0);
+
+    bool podeEditar = false;
+    if (linha >= 0) {
+        const QVariantList dados = listaCadeia->item(linha)->data(Qt::UserRole).toList();
+        const int indice = dados.isEmpty() ? -1 : dados[0].toInt();
+        if (indice >= 0 && indice < catalogoFiltros().size()) {
+            const FiltroDef &f = catalogoFiltros()[indice];
+            podeEditar = filtroDisponivel(f.tipo) && !f.parametros.isEmpty();
+        }
+    }
+    botaoEditar->setEnabled(podeEditar);
 }
 
 // ---------- Processamento ----------

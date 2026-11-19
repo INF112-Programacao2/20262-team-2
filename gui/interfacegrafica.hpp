@@ -26,6 +26,7 @@ private slots:
 
     void aoMudarFiltro(int indice);
     void aoAdicionarFiltro();
+    void aoEditarFiltro();
     void aoRemoverFiltro();
     void aoLimparCadeia();
 
@@ -45,6 +46,7 @@ private:
 
     // Escolha de filtro e parâmetros (até 2 por filtro)
     QComboBox *comboFiltros;
+    QPushButton *botaoAdicionar;
     QLabel *rotuloParam[2];
     QSlider *slider[2];
     QLabel *valorParam[2];
@@ -53,6 +55,7 @@ private:
     QListWidget *listaCadeia;
     QPushButton *botaoSubir;
     QPushButton *botaoDescer;
+    QPushButton *botaoEditar;
     QPushButton *botaoRemover;
     QPushButton *botaoLimpar;
 
