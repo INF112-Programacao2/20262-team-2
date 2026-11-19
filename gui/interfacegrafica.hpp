@@ -10,6 +10,7 @@ class QSlider;
 class QLabel;
 class QListWidget;
 class QPushButton;
+class VisualizacaoOnda;
 
 class InterfaceGrafica : public QMainWindow {
     Q_OBJECT
@@ -64,6 +65,8 @@ private:
 
     // Processamento
     QPushButton *botaoProcessar;
+    VisualizacaoOnda *ondaOriginal;
+    VisualizacaoOnda *ondaProcessada;
     std::unique_ptr<DadosAudio> audioCarregado;
     bool arquivoCarregado = false;
     bool audioProcessado = false;

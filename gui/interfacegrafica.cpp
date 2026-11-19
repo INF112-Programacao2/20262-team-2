@@ -1,6 +1,7 @@
 #include "interfacegrafica.hpp"
 #include "catalogo_filtros.hpp"
 #include "ponte_filtros.hpp"
+#include "visualizacao_onda.hpp"
 #include "gerenciador_arquivo_WAV.hpp"
 #include "dados_audio.hpp"
 #include <exception>
@@ -55,7 +56,7 @@ InterfaceGrafica::~InterfaceGrafica() = default;
 
 InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle("Processador de Áudio");
-    resize(650, 600);
+    resize(800, 780);
 
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
@@ -145,7 +146,16 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     botaoProcessar = new QPushButton("Processar", central);
     layout->addWidget(botaoProcessar);
 
-    // (os próximos commits adicionam os outros widgets aqui, abaixo do botão Processar)
+    // Visualizacao resumida da amplitude antes e depois dos filtros.
+    QGroupBox *grupoOndas = new QGroupBox("Forma de onda (amplitude)", central);
+    QVBoxLayout *layoutOndas = new QVBoxLayout(grupoOndas);
+    layoutOndas->addWidget(new QLabel("Original", grupoOndas));
+    ondaOriginal = new VisualizacaoOnda(QColor(44, 134, 204), grupoOndas);
+    layoutOndas->addWidget(ondaOriginal);
+    layoutOndas->addWidget(new QLabel("Processado", grupoOndas));
+    ondaProcessada = new VisualizacaoOnda(QColor(37, 163, 107), grupoOndas);
+    layoutOndas->addWidget(ondaProcessada);
+    layout->addWidget(grupoOndas);
 
     // ----- Ligações: arquivos -----
     connect(botaoProcurarEntrada, &QPushButton::clicked, this, &InterfaceGrafica::escolherEntrada);
@@ -176,6 +186,8 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
         audioCarregado.reset();
         arquivoCarregado = false;
         audioProcessado = false;
+        ondaOriginal->limpar();
+        ondaProcessada->limpar();
         atualizarEstado();
         statusBar()->showMessage("Entrada alterada. Carregue o novo arquivo WAV.");
     });
@@ -211,6 +223,8 @@ void InterfaceGrafica::carregar() {
     audioCarregado.reset();
     arquivoCarregado = false;
     audioProcessado = false;
+    ondaOriginal->limpar();
+    ondaProcessada->limpar();
     atualizarEstado();
 
     if (caminho.isEmpty()) {
@@ -241,6 +255,8 @@ void InterfaceGrafica::carregar() {
         }
 
         audioCarregado = std::move(novoAudio);
+        ondaOriginal->definirAudio(*audioCarregado);
+        ondaProcessada->limpar();
         audioProcessado = false;
         arquivoCarregado = true;
         atualizarEstado();
@@ -498,6 +514,8 @@ bool InterfaceGrafica::invalidarAudioAposAlterarCadeia() {
     audioCarregado.reset();
     arquivoCarregado = false;
     audioProcessado = false;
+    ondaOriginal->limpar();
+    ondaProcessada->limpar();
     return true;
 }
 
@@ -628,6 +646,7 @@ void InterfaceGrafica::aoProcessar() {
 
     try {
         montada.cadeia->processar(*audioCarregado);
+        ondaProcessada->definirAudio(*audioCarregado);
         audioProcessado = true;
         statusBar()->showMessage(
             QString("Áudio processado com %1 filtro(s); %2 ignorado(s). Pronto para exportar.")
@@ -637,12 +656,16 @@ void InterfaceGrafica::aoProcessar() {
         // Invalida o áudio para impedir a exportação de um resultado incompleto.
         audioCarregado.reset();
         arquivoCarregado = false;
+        ondaOriginal->limpar();
+        ondaProcessada->limpar();
         QMessageBox::critical(this, "Erro ao processar áudio",
                               QString::fromUtf8(erro.what()) +
                               "\nCarregue o arquivo novamente antes de processar.");
     } catch (...) {
         audioCarregado.reset();
         arquivoCarregado = false;
+        ondaOriginal->limpar();
+        ondaProcessada->limpar();
         QMessageBox::critical(this, "Erro ao processar áudio",
                               "Falha inesperada. Carregue o arquivo novamente antes de processar.");
     }
