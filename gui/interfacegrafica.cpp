@@ -300,7 +300,8 @@ void InterfaceGrafica::exportar() {
     }
 
     try {
-        GerenciadorArquivoWav::exportar(caminho.toStdString(), *audioCarregado);
+        // So autoriza sobrescrever quando o usuario confirmou na caixa de dialogo.
+        GerenciadorArquivoWav::exportar(caminho.toStdString(), *audioCarregado, info.exists());
         statusBar()->showMessage("Exportado para: " + caminho);
     } catch (const std::exception &erro) {
         QMessageBox::critical(this, "Erro ao exportar WAV",
