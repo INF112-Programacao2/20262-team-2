@@ -48,3 +48,20 @@ target_include_directories(gui_verificacao PRIVATE
     ${RAIZ_PROJETO}/include/filtros
 )
 target_link_libraries(gui_verificacao PRIVATE Qt6::Widgets)
+
+# ----- Reprodução opcional (Qt Multimedia) -----
+# Mantém a GUI compilável mesmo sem o módulo de áudio instalado.
+find_package(Qt6 QUIET COMPONENTS Multimedia)
+if(TARGET Qt6::Multimedia)
+    target_sources(gui PRIVATE reprodutor_audio.cpp reprodutor_audio.hpp)
+    target_link_libraries(gui PRIVATE Qt6::Multimedia)
+    target_compile_definitions(gui PRIVATE GUI_COM_AUDIO=1)
+
+    target_sources(gui_verificacao PRIVATE reprodutor_audio.cpp reprodutor_audio.hpp)
+    target_link_libraries(gui_verificacao PRIVATE Qt6::Multimedia)
+    target_compile_definitions(gui_verificacao PRIVATE GUI_COM_AUDIO=1)
+else()
+    message(STATUS "Qt Multimedia não encontrado: botões de reprodução desabilitados")
+    target_compile_definitions(gui PRIVATE GUI_COM_AUDIO=0)
+    target_compile_definitions(gui_verificacao PRIVATE GUI_COM_AUDIO=0)
+endif()

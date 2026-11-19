@@ -11,6 +11,7 @@ class QLabel;
 class QListWidget;
 class QPushButton;
 class VisualizacaoOnda;
+class ReprodutorAudio;
 
 class InterfaceGrafica : public QMainWindow {
     Q_OBJECT
@@ -67,6 +68,10 @@ private:
     QPushButton *botaoProcessar;
     VisualizacaoOnda *ondaOriginal;
     VisualizacaoOnda *ondaProcessada;
+    QPushButton *botaoOuvirOriginal;
+    QPushButton *botaoOuvirProcessado;
+    QPushButton *botaoPararAudio;
+    ReprodutorAudio *reprodutor = nullptr;  // criado apenas com Qt Multimedia disponível
     std::unique_ptr<DadosAudio> audioCarregado;
     bool arquivoCarregado = false;
     bool audioProcessado = false;

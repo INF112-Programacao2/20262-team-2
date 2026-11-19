@@ -2,6 +2,12 @@
 #include "catalogo_filtros.hpp"
 #include "ponte_filtros.hpp"
 #include "visualizacao_onda.hpp"
+#ifndef GUI_COM_AUDIO
+#define GUI_COM_AUDIO 0
+#endif
+#if GUI_COM_AUDIO
+#include "reprodutor_audio.hpp"
+#endif
 #include "gerenciador_arquivo_WAV.hpp"
 #include "dados_audio.hpp"
 #include <exception>
@@ -21,6 +27,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSlider>
 #include <QSpinBox>
 #include <QStatusBar>
@@ -56,11 +63,21 @@ InterfaceGrafica::~InterfaceGrafica() = default;
 
 InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle("Processador de Áudio");
-    resize(800, 780);
+    resize(860, 720);
 
-    QWidget *central = new QWidget(this);
-    setCentralWidget(central);
+    // A janela agora rola verticalmente: controles embaixo nao ficam escondidos
+    // em telas menores, e a barra de status continua fixa no QMainWindow.
+    QScrollArea *areaRolagem = new QScrollArea(this);
+    areaRolagem->setWidgetResizable(true);
+    areaRolagem->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    areaRolagem->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QWidget *central = new QWidget(areaRolagem);
     QVBoxLayout *layout = new QVBoxLayout(central);
+    // A QScrollArea precisa receber o widget depois da criacao do layout.
+    areaRolagem->setWidget(central);
+    setCentralWidget(areaRolagem);
+    layout->setContentsMargins(14, 12, 14, 12);
+    layout->setSpacing(10);
 
     // ----- Linha de entrada -----
     layout->addWidget(new QLabel("Arquivo de entrada (.wav):", central));
@@ -126,22 +143,25 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     QVBoxLayout *layoutCadeia = new QVBoxLayout(grupoCadeia);
 
     listaCadeia = new QListWidget(grupoCadeia);
+    listaCadeia->setMinimumHeight(120);
+    listaCadeia->setMaximumHeight(160);
     layoutCadeia->addWidget(listaCadeia);
 
-    QHBoxLayout *botoesCadeia = new QHBoxLayout();
+    // Duas linhas evitam que os cinco botoes estourem a largura da janela.
+    QGridLayout *botoesCadeia = new QGridLayout();
     botaoSubir   = new QPushButton("Subir", grupoCadeia);
     botaoDescer  = new QPushButton("Descer", grupoCadeia);
     botaoEditar  = new QPushButton("Editar parâmetros", grupoCadeia);
     botaoRemover = new QPushButton("Remover", grupoCadeia);
     botaoLimpar  = new QPushButton("Limpar tudo", grupoCadeia);
-    botoesCadeia->addWidget(botaoSubir);
-    botoesCadeia->addWidget(botaoDescer);
-    botoesCadeia->addWidget(botaoEditar);
-    botoesCadeia->addWidget(botaoRemover);
-    botoesCadeia->addWidget(botaoLimpar);
+    botoesCadeia->addWidget(botaoSubir, 0, 0);
+    botoesCadeia->addWidget(botaoDescer, 0, 1);
+    botoesCadeia->addWidget(botaoEditar, 0, 2);
+    botoesCadeia->addWidget(botaoRemover, 1, 0);
+    botoesCadeia->addWidget(botaoLimpar, 1, 1, 1, 2);
     layoutCadeia->addLayout(botoesCadeia);
 
-    layout->addWidget(grupoCadeia, 1);   // o 1 faz a cadeia ocupar o espaço que sobra
+    layout->addWidget(grupoCadeia);
 
     botaoProcessar = new QPushButton("Processar", central);
     layout->addWidget(botaoProcessar);
@@ -156,6 +176,59 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     ondaProcessada = new VisualizacaoOnda(QColor(37, 163, 107), grupoOndas);
     layoutOndas->addWidget(ondaProcessada);
     layout->addWidget(grupoOndas);
+
+    // Comparação auditiva: sempre toca um único áudio por vez.
+    QGroupBox *grupoReproducao = new QGroupBox("Reprodução de áudio — original e processado", central);
+    QVBoxLayout *layoutReproducao = new QVBoxLayout(grupoReproducao);
+    QHBoxLayout *linhaReproducao = new QHBoxLayout();
+    botaoOuvirOriginal = new QPushButton("Ouvir original", grupoReproducao);
+    botaoOuvirProcessado = new QPushButton("Ouvir processado", grupoReproducao);
+    botaoPararAudio = new QPushButton("Parar áudio", grupoReproducao);
+    linhaReproducao->addWidget(botaoOuvirOriginal);
+    linhaReproducao->addWidget(botaoOuvirProcessado);
+    linhaReproducao->addWidget(botaoPararAudio);
+    layoutReproducao->addLayout(linhaReproducao);
+    QLabel *ajudaReproducao = new QLabel(
+        "Carregue um WAV para ouvir o original. Processe-o para comparar o resultado.",
+        grupoReproducao);
+    ajudaReproducao->setWordWrap(true);
+    layoutReproducao->addWidget(ajudaReproducao);
+    // Coloca os botoes logo depois das informacoes do WAV, perto do topo.
+    layout->insertWidget(3, grupoReproducao);
+
+#if GUI_COM_AUDIO
+    reprodutor = new ReprodutorAudio(this);
+    reprodutor->aoAlterarEstado([this]() { atualizarEstado(); });
+    connect(botaoOuvirOriginal, &QPushButton::clicked, this, [this]() {
+        QString erro;
+        if (!reprodutor->tocarOriginal(erro))
+            QMessageBox::warning(this, "Reprodução indisponível", erro);
+        else
+            statusBar()->showMessage("Reproduzindo áudio original.");
+        atualizarEstado();
+    });
+    connect(botaoOuvirProcessado, &QPushButton::clicked, this, [this]() {
+        QString erro;
+        if (!audioCarregado || !audioProcessado || !reprodutor->tocarProcessado(*audioCarregado, erro))
+            QMessageBox::warning(this, "Reprodução indisponível",
+                                 erro.isEmpty() ? "Processe o áudio antes de reproduzi-lo." : erro);
+        else
+            statusBar()->showMessage("Reproduzindo áudio processado.");
+        atualizarEstado();
+    });
+    connect(botaoPararAudio, &QPushButton::clicked, this, [this]() {
+        reprodutor->parar();
+        statusBar()->showMessage("Reprodução interrompida.");
+        atualizarEstado();
+    });
+#else
+    grupoReproducao->setToolTip("Instale o módulo Qt Multimedia para habilitar a reprodução.");
+    QLabel *avisoMultimedia = new QLabel(
+        "Reprodução desativada: módulo Qt Multimedia não encontrado. "
+        "Instale-o na mesma versão do Qt e configure o projeto novamente.", grupoReproducao);
+    avisoMultimedia->setWordWrap(true);
+    layoutReproducao->addWidget(avisoMultimedia);
+#endif
 
     // ----- Ligações: arquivos -----
     connect(botaoProcurarEntrada, &QPushButton::clicked, this, &InterfaceGrafica::escolherEntrada);
@@ -183,6 +256,9 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     connect(botaoProcessar, &QPushButton::clicked, this, &InterfaceGrafica::aoProcessar);
     connect(campoEntrada, &QLineEdit::textChanged, this, [this]() {
         // Caminho alterado: o audio anterior nao representa mais a entrada selecionada.
+#if GUI_COM_AUDIO
+        reprodutor->limpar();
+#endif
         audioCarregado.reset();
         arquivoCarregado = false;
         audioProcessado = false;
@@ -218,6 +294,9 @@ void InterfaceGrafica::carregar() {
     QString caminho = limparCaminho(campoEntrada->text());
 
     // Antes de qualquer validacao, descarta o audio anterior.
+#if GUI_COM_AUDIO
+    reprodutor->limpar();
+#endif
     // Assim, uma tentativa frustrada de carregamento nao deixa
     // um resultado antigo disponivel para processamento/exportacao.
     audioCarregado.reset();
@@ -254,6 +333,10 @@ void InterfaceGrafica::carregar() {
             return;
         }
 
+#if GUI_COM_AUDIO
+        // Guarda o som original antes que os filtros alterem as amostras em memória.
+        reprodutor->definirOriginal(*novoAudio);
+#endif
         audioCarregado = std::move(novoAudio);
         ondaOriginal->definirAudio(*audioCarregado);
         ondaProcessada->limpar();
@@ -511,6 +594,9 @@ bool InterfaceGrafica::invalidarAudioAposAlterarCadeia() {
     if (!audioProcessado)
         return false;
 
+#if GUI_COM_AUDIO
+    reprodutor->limpar();
+#endif
     audioCarregado.reset();
     arquivoCarregado = false;
     audioProcessado = false;
@@ -545,6 +631,15 @@ void InterfaceGrafica::atualizarEstado() {
     bool temCadeia = listaCadeia->count() > 0;
     botaoProcessar->setEnabled(arquivoCarregado && audioCarregado && temCadeia && !audioProcessado);
     botaoExportar->setEnabled(arquivoCarregado && audioCarregado && audioProcessado);
+#if GUI_COM_AUDIO
+    botaoOuvirOriginal->setEnabled(reprodutor && reprodutor->temOriginal());
+    botaoOuvirProcessado->setEnabled(arquivoCarregado && audioCarregado && audioProcessado);
+    botaoPararAudio->setEnabled(reprodutor && reprodutor->tocando());
+#else
+    botaoOuvirOriginal->setEnabled(false);
+    botaoOuvirProcessado->setEnabled(false);
+    botaoPararAudio->setEnabled(false);
+#endif
     botaoExportar->setToolTip(audioProcessado
         ? QString() : "Processe um arquivo WAV antes de exportar.");
 
@@ -641,6 +736,9 @@ void InterfaceGrafica::aoProcessar() {
             return;
     }
 
+#if GUI_COM_AUDIO
+    reprodutor->parar();  // não manter ponteiros de amostras durante processamento in-place
+#endif
     definirOcupado(true);
     audioProcessado = false;
 
@@ -654,6 +752,9 @@ void InterfaceGrafica::aoProcessar() {
     } catch (const std::exception &erro) {
         // O núcleo pode ter alterado parte das amostras antes de lançar a exceção.
         // Invalida o áudio para impedir a exportação de um resultado incompleto.
+#if GUI_COM_AUDIO
+        reprodutor->limpar();
+#endif
         audioCarregado.reset();
         arquivoCarregado = false;
         ondaOriginal->limpar();
@@ -662,6 +763,9 @@ void InterfaceGrafica::aoProcessar() {
                               QString::fromUtf8(erro.what()) +
                               "\nCarregue o arquivo novamente antes de processar.");
     } catch (...) {
+#if GUI_COM_AUDIO
+        reprodutor->limpar();
+#endif
         audioCarregado.reset();
         arquivoCarregado = false;
         ondaOriginal->limpar();
