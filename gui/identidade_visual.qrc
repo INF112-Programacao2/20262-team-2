@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/na_escuta">
+        <file alias="logo.png">assets/logo_na_escuta.png</file>
+    </qresource>
+</RCC>

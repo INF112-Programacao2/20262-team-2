@@ -4,6 +4,7 @@ project(ProcessadorAudioGUI LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)   # necessário para signals/slots
+set(CMAKE_AUTORCC ON)   # incorpora a identidade visual ao executavel
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
@@ -28,6 +29,7 @@ add_executable(gui
     catalogo_filtros.hpp
     ponte_filtros.cpp
     ponte_filtros.hpp
+    identidade_visual.qrc
 )
 target_link_libraries(gui PRIVATE Qt6::Widgets nucleo)
 

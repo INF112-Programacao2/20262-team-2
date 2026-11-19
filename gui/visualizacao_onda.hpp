@@ -21,6 +21,12 @@ public:
         : QWidget(parent), corOnda(cor) {
         setMinimumHeight(75);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        // Paleta monocromatica coerente com a identidade visual da GUI.
+        QPalette cores = palette();
+        cores.setColor(QPalette::Base, QColor(22, 22, 22));
+        cores.setColor(QPalette::Mid, QColor(78, 78, 78));
+        cores.setColor(QPalette::Text, QColor(178, 178, 178));
+        setPalette(cores);
     }
 
     void limpar() {
@@ -63,6 +69,7 @@ protected:
         pintor.drawRect(area);
 
         if (faixas.isEmpty()) {
+            pintor.setPen(palette().color(QPalette::Text));
             pintor.drawText(area, Qt::AlignCenter, "Sem amostras para exibir");
             return;
         }

@@ -1,4 +1,4 @@
-# Interface gráfica - Processador Digital de Áudio
+# Na Escuta? — Interface gráfica (Qt 6 Widgets)
 
 Interface do projeto de **INF112 - Programação II**, implementada em **C++17** e **Qt 6 Widgets**.
 
@@ -102,3 +102,15 @@ O roteiro de casos de teste está em [`TESTES_GUI.md`](TESTES_GUI.md). Registre 
 ### Escopo da branch
 
 A branch `interface-qt` e responsavel apenas pelos arquivos da interface. Problemas encontrados no núcleo devem ser comunicados a quem mantem `src/` e `include/`, sem alterações nesses diretorios.
+
+## Identidade visual
+
+A interface se chama **Na Escuta?**. Seu cabeçalho fixo apresenta o logo à esquerda
+e os controles usam somente preto, branco e cinza, seguindo a arte da logo.
+Eles estão agrupados pela sequência de uso: entrada, reprodução,
+filtros, cadeia, processamento/exportação e formas de onda. O formulário possui
+rolagem vertical; a barra de status permanece visível.
+
+A arte original está em `assets/logo_na_escuta.png` e é incorporada ao executável
+por `identidade_visual.qrc` (Qt Resource System), sem depender de caminhos
+externos ao distribuir o programa.
