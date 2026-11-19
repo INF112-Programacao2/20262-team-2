@@ -43,6 +43,9 @@ private:
     // Arquivos
     QLineEdit *campoEntrada;
     QLineEdit *campoSaida;
+    QLabel *rotuloInfoAudio;
+    QLabel *rotuloEstadoAudio;
+    QPushButton *botaoExportar;
 
     // Escolha de filtro e parâmetros (até 2 por filtro)
     QComboBox *comboFiltros;

@@ -72,12 +72,23 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     linhaEntrada->addWidget(botaoCarregar);
     layout->addLayout(linhaEntrada);
 
+    // Informacoes persistentes, atualizadas ao carregar/processar o WAV.
+    QGroupBox *grupoInfo = new QGroupBox("Informações do áudio", central);
+    QVBoxLayout *layoutInfo = new QVBoxLayout(grupoInfo);
+    rotuloInfoAudio = new QLabel("Nenhum arquivo WAV carregado.", grupoInfo);
+    rotuloInfoAudio->setWordWrap(true);
+    rotuloEstadoAudio = new QLabel("Estado: aguardando carregamento.", grupoInfo);
+    rotuloEstadoAudio->setWordWrap(true);
+    layoutInfo->addWidget(rotuloInfoAudio);
+    layoutInfo->addWidget(rotuloEstadoAudio);
+    layout->addWidget(grupoInfo);
+
     // ----- Linha de saída -----
     layout->addWidget(new QLabel("Arquivo de saída (.wav):", central));
     QHBoxLayout *linhaSaida = new QHBoxLayout();
     campoSaida = new QLineEdit(central);
     QPushButton *botaoProcurarSaida = new QPushButton("Procurar...", central);
-    QPushButton *botaoExportar = new QPushButton("Exportar", central);
+    botaoExportar = new QPushButton("Exportar", central);
     linhaSaida->addWidget(campoSaida);
     linhaSaida->addWidget(botaoProcurarSaida);
     linhaSaida->addWidget(botaoExportar);
@@ -514,6 +525,34 @@ void InterfaceGrafica::atualizarBotoesCadeia() {
 void InterfaceGrafica::atualizarEstado() {
     bool temCadeia = listaCadeia->count() > 0;
     botaoProcessar->setEnabled(arquivoCarregado && audioCarregado && temCadeia && !audioProcessado);
+    botaoExportar->setEnabled(arquivoCarregado && audioCarregado && audioProcessado);
+    botaoExportar->setToolTip(audioProcessado
+        ? QString() : "Processe um arquivo WAV antes de exportar.");
+
+    if (!arquivoCarregado || !audioCarregado) {
+        rotuloInfoAudio->setText("Nenhum arquivo WAV carregado.");
+        rotuloEstadoAudio->setText("Estado: aguardando carregamento.");
+    } else {
+        const uint16_t canais = audioCarregado->get_num_canais();
+        const uint32_t frequencia = audioCarregado->get_sample_rate();
+        const uint16_t bits = audioCarregado->get_bits_per_sample();
+        const uint32_t amostras = audioCarregado->get_num_amostras();
+
+        QString duracao = "indisponível";
+        if (canais > 0 && frequencia > 0) {
+            const double segundos = static_cast<double>(amostras)
+                / (static_cast<double>(canais) * frequencia);
+            duracao = QString::number(segundos, 'f', 2) + " s";
+        }
+
+        rotuloInfoAudio->setText(
+            QString("Canais: %1  |  Taxa: %2 Hz  |  Resolução: %3 bits  |  "
+                    "Amostras: %4  |  Duração: %5")
+                .arg(canais).arg(frequencia).arg(bits).arg(amostras).arg(duracao));
+        rotuloEstadoAudio->setText(audioProcessado
+            ? "Estado: áudio processado; pronto para exportar."
+            : "Estado: WAV carregado; aguardando processamento.");
+    }
 
     if (!arquivoCarregado || !audioCarregado)
         botaoProcessar->setToolTip("Carregue um arquivo .wav primeiro.");
