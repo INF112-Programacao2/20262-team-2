@@ -1,14 +1,18 @@
 #include "ponte_filtros.hpp"
+#include "filtro_distorcao.hpp"
 #include "filtro_limpa_ruido.hpp"
+#include "filtro_realce_freq.hpp"
 #include "filtro_volume.hpp"
 #include <cmath>
 
 bool filtroDisponivel(TipoFiltro tipo) {
     switch (tipo) {
         case TipoFiltro::Volume:
+        case TipoFiltro::Distorcao:
+        case TipoFiltro::ReforcoFrequencia:
         case TipoFiltro::LimpezaFala:
             return true;
-        default:   // distorção, eco e reforço de frequência ainda não existem no núcleo
+        default:   // Eco/Delay ainda nao possui implementacao no nucleo
             return false;
     }
 }
@@ -48,11 +52,25 @@ CadeiaMontada montarCadeia(const QList<QVariantList> &itens) {
                 filtro = std::make_unique<FiltroVolume>(
                     decibelsParaMultiplicador(valorDoItem(dados, 1, def)));
                 break;
+            case TipoFiltro::Distorcao: {
+                // Intensidade de 0 a 100% vira drive de 1.0 a 5.0.
+                const double intensidade = valorDoItem(dados, 1, def) / 100.0;
+                const double drive = 1.0 + 4.0 * intensidade;
+                const double limite = valorDoItem(dados, 2, def) / 100.0;
+                // Reducao de saida fixa: a GUI oferece somente dois controles por filtro.
+                filtro = std::make_unique<FiltroDistorcao>(drive, limite, 0.8);
+                break;
+            }
+            case TipoFiltro::ReforcoFrequencia:
+                filtro = std::make_unique<FiltroRealceFreq>(
+                    valorDoItem(dados, 1, def), valorDoItem(dados, 2, def));
+                break;
             case TipoFiltro::LimpezaFala:
-                filtro = std::make_unique<FiltroLimpaRuido>();
+                filtro = std::make_unique<FiltroLimpaRuido>(
+                    valorDoItem(dados, 1, def), valorDoItem(dados, 2, def));
                 break;
             default:
-                break;   // ainda não existe no núcleo
+                break;   // Eco/Delay permanece indisponivel
         }
 
         if (!filtro) {

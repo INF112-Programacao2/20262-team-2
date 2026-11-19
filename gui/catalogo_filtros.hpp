@@ -34,14 +34,14 @@ inline const QVector<FiltroDef> &catalogoFiltros() {
         {"Ganho de volume", TipoFiltro::Volume,
             {{"Ganho", -20, 20, 0, " dB"}}},
         {"Distorção", TipoFiltro::Distorcao,
-            {{"Intensidade", 0, 100, 30, " %"}}},
+            {{"Intensidade", 0, 100, 30, " %"}, {"Limite", 10, 100, 80, " %"}}},
         {"Eco / Delay", TipoFiltro::Eco,
             {{"Atraso", 50, 1000, 300, " ms"}, {"Repetição", 0, 90, 40, " %"}}},
         {"Reforço de frequência (perda auditiva)", TipoFiltro::ReforcoFrequencia,
-            {{"Frequência central", 250, 8000, 2000, " Hz"}, {"Ganho", 0, 24, 6, " dB"}}},
-        // o FiltroLimpaRuido ainda não recebe parâmetros, então não há sliders para ele
+            {{"Frequência central", 250, 8000, 2000, " Hz"}, {"Ganho", -24, 24, 6, " dB"}}},
+        // Faixas separadas garantem corte grave menor que corte agudo.
         {"Limpeza de fala", TipoFiltro::LimpezaFala,
-            {}},
+            {{"Corte grave", 100, 1000, 300, " Hz"}, {"Corte agudo", 1200, 6000, 3400, " Hz"}}},
     };
     return filtros;
 }
