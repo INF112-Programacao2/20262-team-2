@@ -81,16 +81,16 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     QFrame *cabecalho = new QFrame(raiz);
     cabecalho->setObjectName("cabecalhoMarca");
     QHBoxLayout *linhaMarca = new QHBoxLayout(cabecalho);
-    linhaMarca->setContentsMargins(24, 12, 24, 12);
-    linhaMarca->setSpacing(16);
+    linhaMarca->setContentsMargins(22, 9, 22, 9);
+    linhaMarca->setSpacing(14);
     QLabel *logo = new QLabel(cabecalho);
     logo->setObjectName("logoMarca");
-    logo->setFixedSize(108, 86);
+    logo->setFixedSize(100, 78);
     logo->setAlignment(Qt::AlignCenter);
     logo->setAccessibleName("Logo do Na Escuta?");
     const QPixmap imagemLogo(":/na_escuta/logo.png");
     if (!imagemLogo.isNull())
-        logo->setPixmap(imagemLogo.scaled(104, 82, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        logo->setPixmap(imagemLogo.scaled(96, 74, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     linhaMarca->addWidget(logo);
     QVBoxLayout *titulos = new QVBoxLayout();
     titulos->setSpacing(2);
@@ -114,8 +114,8 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     QWidget *central = new QWidget(areaRolagem);
     central->setObjectName("conteudoPrincipal");
     QVBoxLayout *layout = new QVBoxLayout(central);
-    layout->setContentsMargins(22, 18, 22, 22);
-    layout->setSpacing(16);
+    layout->setContentsMargins(20, 12, 20, 16);
+    layout->setSpacing(10);
     areaRolagem->setWidget(central);
     estrutura->addWidget(areaRolagem, 1);
     setCentralWidget(raiz);
@@ -138,14 +138,20 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
         QLabel { color: #E8E8E8; }
         QLabel#textoAjuda { color: #A5A5A5; font-size: 11px; }
         QLabel#estadoAudio { color: #D9D9D9; }
+        QFrame#resumoEntrada {
+            background-color: #171717;
+            border: 1px solid #393939;
+            border-radius: 7px;
+        }
+        QLabel#tituloResumoAudio { color: #F2F2F2; font-size: 11px; font-weight: 600; }
         QGroupBox {
             color: #F0F0F0;
             font-weight: 600;
             background-color: #1E1E1E;
             border: 1px solid #414141;
-            border-radius: 12px;
-            margin-top: 17px;
-            padding: 16px 12px 12px 12px;
+            border-radius: 10px;
+            margin-top: 16px;
+            padding: 10px 12px 9px 12px;
         }
         QGroupBox::title {
             subcontrol-origin: margin;
@@ -159,7 +165,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
             background-color: #141414;
             border: 1px solid #4B4B4B;
             border-radius: 7px;
-            padding: 7px 9px;
+            padding: 6px 9px;
             selection-background-color: #626262;
         }
         QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QListWidget:focus {
@@ -177,8 +183,8 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
             background: #303030;
             border: 1px solid #505050;
             border-radius: 7px;
-            padding: 8px 12px;
-            min-height: 20px;
+            padding: 6px 10px;
+            min-height: 18px;
         }
         QPushButton:hover { background: #424242; border-color: #797979; }
         QPushButton:pressed { background: #252525; }
@@ -208,6 +214,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // ----- 01. Selecao do WAV -----
     QGroupBox *grupoEntrada = new QGroupBox("01  ·  Arquivo de entrada", central);
     QVBoxLayout *layoutEntrada = new QVBoxLayout(grupoEntrada);
+    layoutEntrada->setSpacing(7);
     QLabel *ajudaEntrada = new QLabel("Selecione um arquivo WAV para carregar e processar.", grupoEntrada);
     ajudaEntrada->setObjectName("textoAjuda");
     layoutEntrada->addWidget(ajudaEntrada);
@@ -223,22 +230,30 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     layoutEntrada->addLayout(linhaEntrada);
     layout->addWidget(grupoEntrada);
 
-    // Informacoes persistentes, atualizadas ao carregar/processar o WAV.
-    QGroupBox *grupoInfo = new QGroupBox("Informações do áudio", central);
-    QVBoxLayout *layoutInfo = new QVBoxLayout(grupoInfo);
-    rotuloInfoAudio = new QLabel("Nenhum arquivo WAV carregado.", grupoInfo);
+    // Os metadados ficam ao lado da entrada, sem ocupar uma secao separada.
+    // Os mesmos rotulos continuam atualizados pela logica existente da GUI.
+    QFrame *resumoEntrada = new QFrame(grupoEntrada);
+    resumoEntrada->setObjectName("resumoEntrada");
+    QVBoxLayout *layoutInfo = new QVBoxLayout(resumoEntrada);
+    layoutInfo->setContentsMargins(10, 7, 10, 7);
+    layoutInfo->setSpacing(3);
+    QLabel *tituloResumo = new QLabel("Informações do áudio", resumoEntrada);
+    tituloResumo->setObjectName("tituloResumoAudio");
+    rotuloInfoAudio = new QLabel("Nenhum arquivo WAV carregado.", resumoEntrada);
     rotuloInfoAudio->setWordWrap(true);
-    rotuloEstadoAudio = new QLabel("Estado: aguardando carregamento.", grupoInfo);
+    rotuloEstadoAudio = new QLabel("Estado: aguardando carregamento.", resumoEntrada);
     rotuloEstadoAudio->setWordWrap(true);
     rotuloEstadoAudio->setObjectName("estadoAudio");
+    layoutInfo->addWidget(tituloResumo);
     layoutInfo->addWidget(rotuloInfoAudio);
     layoutInfo->addWidget(rotuloEstadoAudio);
-    layout->addWidget(grupoInfo);
+    layoutEntrada->addWidget(resumoEntrada);
 
 
     // ----- Grupo: escolha do filtro -----
     QGroupBox *grupoFiltros = new QGroupBox("03  ·  Configurar filtros", central);
     QVBoxLayout *layoutFiltros = new QVBoxLayout(grupoFiltros);
+    layoutFiltros->setSpacing(6);
 
     comboFiltros = new QComboBox(grupoFiltros);
     for (const FiltroDef &f : catalogoFiltros())
@@ -266,14 +281,16 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // ----- Grupo: cadeia de filtros -----
     QGroupBox *grupoCadeia = new QGroupBox("04  ·  Cadeia de filtros (ordem de cima para baixo)", central);
     QVBoxLayout *layoutCadeia = new QVBoxLayout(grupoCadeia);
+    layoutCadeia->setSpacing(6);
 
     listaCadeia = new QListWidget(grupoCadeia);
-    listaCadeia->setMinimumHeight(120);
-    listaCadeia->setMaximumHeight(160);
+    listaCadeia->setMinimumHeight(100);
+    listaCadeia->setMaximumHeight(140);
     layoutCadeia->addWidget(listaCadeia);
 
-    // Duas linhas evitam que os cinco botoes estourem a largura da janela.
-    QGridLayout *botoesCadeia = new QGridLayout();
+    // Uma barra unica de acoes deixa a cadeia mais compacta e clara.
+    QHBoxLayout *botoesCadeia = new QHBoxLayout();
+    botoesCadeia->setSpacing(6);
     botaoSubir   = new QPushButton("Subir", grupoCadeia);
     botaoDescer  = new QPushButton("Descer", grupoCadeia);
     botaoEditar  = new QPushButton("Editar parâmetros", grupoCadeia);
@@ -281,11 +298,11 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     botaoLimpar  = new QPushButton("Limpar tudo", grupoCadeia);
     botaoRemover->setObjectName("botaoPerigo");
     botaoLimpar->setObjectName("botaoPerigo");
-    botoesCadeia->addWidget(botaoSubir, 0, 0);
-    botoesCadeia->addWidget(botaoDescer, 0, 1);
-    botoesCadeia->addWidget(botaoEditar, 0, 2);
-    botoesCadeia->addWidget(botaoRemover, 1, 0);
-    botoesCadeia->addWidget(botaoLimpar, 1, 1, 1, 2);
+    botoesCadeia->addWidget(botaoSubir, 1);
+    botoesCadeia->addWidget(botaoDescer, 1);
+    botoesCadeia->addWidget(botaoEditar, 2);
+    botoesCadeia->addWidget(botaoRemover, 1);
+    botoesCadeia->addWidget(botaoLimpar, 1);
     layoutCadeia->addLayout(botoesCadeia);
 
     layout->addWidget(grupoCadeia);
@@ -293,6 +310,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // ----- 05. Processamento e saida juntos, no ponto natural do fluxo -----
     QGroupBox *grupoFinalizacao = new QGroupBox("05  ·  Processar e exportar", central);
     QVBoxLayout *layoutFinalizacao = new QVBoxLayout(grupoFinalizacao);
+    layoutFinalizacao->setSpacing(6);
     botaoProcessar = new QPushButton("Processar áudio", grupoFinalizacao);
     botaoProcessar->setObjectName("botaoPrimario");
     layoutFinalizacao->addWidget(botaoProcessar);
@@ -313,6 +331,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // Visualizacao resumida da amplitude antes e depois dos filtros.
     QGroupBox *grupoOndas = new QGroupBox("06  ·  Ondas do áudio (amplitude)", central);
     QVBoxLayout *layoutOndas = new QVBoxLayout(grupoOndas);
+    layoutOndas->setSpacing(5);
     layoutOndas->addWidget(new QLabel("Original", grupoOndas));
     ondaOriginal = new VisualizacaoOnda(QColor(225, 225, 225), grupoOndas);
     layoutOndas->addWidget(ondaOriginal);
@@ -324,6 +343,7 @@ InterfaceGrafica::InterfaceGrafica(QWidget *parent) : QMainWindow(parent) {
     // Comparação auditiva: sempre toca um único áudio por vez.
     QGroupBox *grupoReproducao = new QGroupBox("02  ·  Ouvir e comparar", central);
     QVBoxLayout *layoutReproducao = new QVBoxLayout(grupoReproducao);
+    layoutReproducao->setSpacing(6);
     QHBoxLayout *linhaReproducao = new QHBoxLayout();
     botaoOuvirOriginal = new QPushButton("Ouvir original", grupoReproducao);
     botaoOuvirProcessado = new QPushButton("Ouvir processado", grupoReproducao);
