@@ -1,70 +1,82 @@
-# Interface gráfica (Qt Widgets)
+# Interface gráfica - Processador Digital de Áudio
 
-Interface do **Processador Digital de Áudio**, feita em C++17 com **Qt 6 Widgets**.
+Interface do projeto de **INF112 - Programação II**, implementada em **C++17** e **Qt 6 Widgets**.
 
-> **Estado atual:** a tela está pronta e funciona sozinha, mas ainda **não lê, não processa e não grava áudio**. Esses pontos estão marcados com `TODO` no código e aguardam as classes do grupo (`GerenciadorArquivoWav`, `DadosAudio`, `CadeiaFiltros` e os filtros). O que a interface espera de cada uma está em [`docs/interface-gui.md`](../docs/interface-gui.md).
+> **Situação de desenvolvimento:** a GUI possui código para carregar arquivos WAV, montar e aplicar uma cadeia de filtros e exportar áudio processado. **A execução do fluxo completo ainda não foi validada.** Na revisão de 18/11/2026, a compilação parou em um erro do núcleo (`src/gerenciador_arquivo_WAV.cpp`: chamada a `e_valido()` que não corresponde a `e_valida(const char*)`). Essa pendência pertence aos responsáveis pelo núcleo; a GUI não deve alterar `src/` nem `include/` para contorná-la.
 
-## O que já funciona
+## Recursos implementados na GUI
 
-- Escolha dos arquivos de entrada e saída (`.wav`), com validação de caminho: vazio, inexistente, pasta, extensão errada, pasta de destino inexistente e confirmação antes de sobrescrever (inclusive quando a saída é o próprio arquivo de entrada).
-- Menu de filtros com sliders de parâmetros (ganho, distorção, eco/delay, reforço de frequência e limpeza de fala).
-- Cadeia de filtros: adicionar, remover, subir, descer e limpar.
-- Botão **Processar**, que só habilita com arquivo carregado e ao menos um filtro na cadeia.
-- Mensagens de erro e aviso em pop-ups e status na barra inferior.
+- Selecionar arquivo `.wav` de entrada, validar caminho e solicitar carregamento pela API `GerenciadorArquivoWav::carregar`.
+- Guardar o áudio em memória com `std::unique_ptr<DadosAudio>`, sem copiar os dados de áudio.
+- Exibir informações do WAV carregado: canais, taxa de amostragem, bits por amostra, quantidade de amostras e duração estimada.
+- Escolher filtros e ajustar parâmetros na tela, incluindo edição de filtros que já estão na cadeia (botão ou duplo clique).
+- Adicionar, remover, reordenar e limpar a cadeia; preservar a ordem visual de processamento.
+- Montar `CadeiaFiltros` por meio de `ponte_filtros.cpp` e solicitar processamento com `processar`.
+- Exportar pela API `GerenciadorArquivoWav::exportar`, verificando o caminho e pedindo confirmação antes de sobrescrever.
+- Invalidar o resultado anterior quando a entrada ou a configuração da cadeia mudar, evitando exportar dados desatualizados.
+- Exibir mensagens de estado e erros com recursos do Qt (`QMessageBox` e barra de status).
 
-## Requisitos
+### Filtros mostrados na interface
 
-- **Qt 6** (módulo Widgets). Testado com Qt 6.12 (Windows, MinGW 64-bit) e compila com Qt 6.4 (Ubuntu).
-- **CMake** 3.16 ou superior
-- **Ninja**
-- Um compilador C++17 (MinGW no Windows, g++ no Linux)
+| Filtro | Integração na GUI | Observação |
+| --- | --- | --- |
+| Ganho de volume | Código presente | Parâmetro em dB convertido para multiplicador |
+| Distorção | Código presente | Intensidade e limite; fator de saída definido na ponte |
+| Reforço de frequência | Código presente | Frequência central e ganho |
+| Limpeza de fala | Código presente | Cortes grave e agudo |
+| Eco / Delay | Indisponível | Permanece sinalizado como recurso futuro; depende de API no núcleo |
 
-### Windows
+**Importante:** integração no código não equivale a funcionamento comprovado. Os filtros precisam ser testados com arquivos de áudio depois que a compilação do núcleo for corrigida.
 
-1. Instale o Qt pelo *Qt Online Installer* (qt.io). Em *Custom installation*, marque **Qt 6.x → MinGW 64-bit** e, em *Developer and Designer Tools*, **MinGW**, **CMake** e **Ninja**.
-2. No Git Bash, deixe as ferramentas no `PATH` (ajuste as versões para as que você instalou):
+## Organização de arquivos
+
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `main.cpp` | Iniciar `QApplication` e abrir a janela |
+| `interfacegrafica.hpp` / `.cpp` | Janela Qt, botões, validações, estados e eventos |
+| `catalogo_filtros.hpp` | Nomes, unidades, limites e valores padrão dos controles |
+| `ponte_filtros.hpp` / `.cpp` | Adaptar os valores da tela aos construtores de filtros do núcleo |
+| `CMakeLists.txt` | Configurar a compilação da GUI e sua ligação com o núcleo |
+| `TESTES_GUI.md` | Roteiro manual e registro de testes pendentes |
+
+A interface utiliza os contratos públicos de `DadosAudio`, `GerenciadorArquivoWav` e `CadeiaFiltros`, mas não implementa as regras de leitura e escrita WAV nem os algoritmos de processamento digital.
+
+## Ferramentas
+
+- Qt 6 com módulo **Widgets** (compilador compatível com a mesma instalação do Qt).
+- CMake 3.16 ou superior.
+- Ninja.
+- Compilador com suporte a C++17.
+
+### Windows (Git Bash, a partir da raiz do repositório)
+
+Ajuste as versões conforme a sua instalação; os caminhos abaixo correspondem ao ambiente utilizado no desenvolvimento:
 
 ```bash
 export PATH="/c/Qt/Tools/CMake_64/bin:/c/Qt/Tools/Ninja:/c/Qt/Tools/mingw1310_64/bin:/c/Qt/6.12.0/mingw_64/bin:$PATH"
+
+cmake -S gui -B build-gui -G Ninja -DCMAKE_PREFIX_PATH=C:/Qt/6.12.0/mingw_64
+cmake --build build-gui
+./build-gui/gui.exe
 ```
 
-### Linux (Ubuntu/Debian)
+O executável somente estará disponível se a compilação for concluída com sucesso. Um erro no núcleo pode impedir a geração de `gui.exe`.
+
+### Linux (Ubuntu / Debian)
 
 ```bash
 sudo apt install qt6-base-dev cmake ninja-build g++
+cmake -S gui -B build-gui -G Ninja
+cmake --build build-gui
+./build-gui/gui
 ```
 
-## Compilar e executar
+Os comandos de Linux são orientações de configuração e **não representam um teste bem-sucedido desta versão**.
 
-Dentro da pasta `gui/`:
+## Como validar
 
-```bash
-# Windows (informe a pasta do Qt)
-cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=C:/Qt/6.12.0/mingw_64
-cmake --build build
-./build/gui.exe
+O roteiro de casos de teste está em [`TESTES_GUI.md`](TESTES_GUI.md). Registre os resultados reais, principalmente em carregamento, aplicação de cada filtro e exportação/reabertura de WAV.
 
-# Linux
-cmake -S . -B build -G Ninja
-cmake --build build
-./build/gui
-```
+### Escopo da branch
 
-Depois de alterar só código, basta repetir `cmake --build build`. Quando um arquivo novo é adicionado ao `CMakeLists.txt`, rode o primeiro comando de novo.
-
-## Arquivos
-
-| Arquivo | Função |
-|---------|--------|
-| `main.cpp` | Cria a aplicação Qt e a janela principal |
-| `interfacegrafica.hpp` / `.cpp` | Classe `InterfaceGrafica` (a janela e toda a sua lógica) |
-| `catalogo_filtros.hpp` | Descrição dos filtros exibidos na tela (nome, parâmetros, faixas e unidades). Para um filtro novo aparecer na interface, é só acrescentar uma linha |
-| `CMakeLists.txt` | Configuração do build |
-
-## Onde ligar as classes do grupo
-
-Procure por `TODO` em `interfacegrafica.cpp`:
-
-- `carregar()`: ler o arquivo com o `GerenciadorArquivoWav`.
-- `exportar()`: gravar o `DadosAudio` processado.
-- `aoProcessar()`: montar a `CadeiaFiltros` a partir da lista e executá-la.
+A branch `interface-qt` e responsavel apenas pelos arquivos da interface. Problemas encontrados no núcleo devem ser comunicados a quem mantem `src/` e `include/`, sem alterações nesses diretorios.
