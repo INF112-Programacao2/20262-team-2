@@ -1,17 +1,23 @@
 #ifndef CABECALHO_HPP
 #define CABECALHO_HPP
 
-#include <cstdint>
-#include <string>
+#include <cstddef> //Pra std::size_t (usado para representar tamanhos em bytes)
+#include <cstdint> //Garante inteiros com tamanho exatro em bytes (uint16_t, uint32_t)
+
+
+//Tamanho fixo, em bytes, do cabeçalho de um .wav PCM simples.
+constexpr std::size_t TAMANHO_CABECALHO_WAV = 44;
+
 
 // CabecalhoWav: representa os metadados fixos (44 bytes) de um arquivo .wav
-// TAD simples, apenas guarda o que foi lido do arquivo e expoe getters.
+// Os campos ficam na MESMA ordem do arquivo (pack(1), sem espaços entre
+// eles), por isso o objeto inteiro pode ser lido/gravado com read()/write().
 #pragma pack(push, 1)
 class CabecalhoWav{
     private:
 
     char riffID[4];            // Bytes 0-3: Guarda os caracteres ASCII "RIFF", identificador do tipo de arquivo
-    uint32_t tamanho_arquivo;  // Bytes 4-7: Armazena o tamanho total do ficheiro em bytes
+    uint32_t tamanho_arquivo;  // Bytes 4-7: (Tamanho do arquivo em bytes) - (8), (36 + dataSize)
     char waveID[4];            // Bytes 8-11: Guarda os caracteres ASCII "WAVE", confirma que o formato do áudio dentro do bloco RIFF é um ficheiro WAV
     char fmtID[4];             // Bytes 12-15: Guarda os caracteres ASCII "fmt ", marca o início do sub-bloco de formatação técnica do áudio
     uint32_t fmtSize;          // Bytes 16-19: Define o tamanho em bytes das informações de formato
@@ -24,12 +30,18 @@ class CabecalhoWav{
     char dataID[4];            // Bytes 36-39: Guarda os caracteres ASCII "data", indica que a ficha técnica terminou e que o bloco de áudio real começa a seguir
     uint32_t dataSize;         // Bytes 40-43: Tamanho total do som/das amostras em bytes
 
+    //Função que recalcula os campos dependentes para manter o cabeçalho sempre coerente
+        void recalcular_derivados();
+
     public:
         CabecalhoWav();
+        ~CabecalhoWav();
 
-    // Preenche os campos a partir de um buffer bruto de 44 bytes lido do arquivo.
-    // Retorna true se o cabecalho for valido (RIFF/WAVE/fmt /data), false caso contrario.
-    bool e_valida(const char *buffer);
+       
+    //Validação dos marcadores (de História 1)
+    bool e_valido() const;      //confere "RIFF", "WAVE", "fmt " e "data" e o fmtSize == 16.
+    bool e_suportado() const;   //confere se é PCM de 16 bits com blockAlign coerente
+
 
     // Getters -- somente leitura, ninguem de fora altera um cabecalho ja lido
     uint16_t get_num_de_canais() const;
@@ -38,6 +50,8 @@ class CabecalhoWav{
     uint32_t get_subchunk2_size() const;
     uint16_t get_audio_format() const;
     uint16_t get_block_align() const;
+    uint32_t get_byte_rate() const;
+    uint32_t get_tamanho_arquivo() const;
 
     // Setters
     void set_num_de_canais(uint16_t canais);
@@ -46,4 +60,10 @@ class CabecalhoWav{
 
 };
 #pragma pack(pop)
+
+//Garante que o objeto tem exatamente 44 bytes
+static_assert(sizeof(CabecalhoWav) == TAMANHO_CABECALHO_WAV,
+              "O CabecalhoWav deve ter exatamente 44 bytes");
+
+
 #endif
