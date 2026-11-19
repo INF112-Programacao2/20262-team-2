@@ -2,7 +2,7 @@
 
 Projeto: **INF112 - Processador Digital de Áudio**
 Escopo: **somente `gui/`**
-Estado inicial: **PENDENTE - testes não executados neste documento**
+Registro formal: **EM ANDAMENTO - casos não concluídos nem evidenciados neste documento**
 
 Este roteiro define verificações e resultados esperados. Não é um relatório de aprovação: marque cada caso apenas depois de executar a aplicação e observar o comportamento.
 
@@ -14,7 +14,7 @@ Este roteiro define verificações e resultados esperados. Não é um relatório
 4. Destino de exportação em uma pasta com permissão de escrita e arquivo original preservado.
 5. Ao usar filtros, aplicar volumes moderados; evitar reprodução em nível elevado.
 
-**Bloqueador atualmente conhecido:** `src/gerenciador_arquivo_WAV.cpp` chama `e_valido()` embora a classe exponha `e_valida(const char*)`. A resolução é responsabilidade do núcleo. Não editar arquivos de `src/` ou `include/` para executar estes testes.
+**Histórico de integração:** a incompatibilidade antiga de `e_valido()` foi corrigida pelos responsáveis do núcleo e incorporada pela branch `interface-qt`. A GUI compilou e abriu no Windows. Uma nova falha em `src/` ou `include/` continua sendo responsabilidade dos mantenedores do núcleo.
 
 ## Casos de teste
 
@@ -38,6 +38,18 @@ Este roteiro define verificações e resultados esperados. Não é um relatório
 | GUI-16 | Exportar para arquivo existente e selecionar Não | Operação cancelada; arquivo original inalterado | [ ] Pendente |
 | GUI-17 | Tentar processar áudio inválido ou filtro que falhe | Mensagem de erro; nenhum resultado parcial pode ser exportado | [ ] Pendente |
 | GUI-18 | Carregar caminho com acentos ou caracteres não ASCII no Windows | Verificar compatibilidade; registrar problema se não funcionar | [ ] Pendente |
+| GUI-19 | Carregar WAV válido e observar forma de onda original | Gráfico visível e coerente com as amostras; sem travamento | [ ] Pendente |
+| GUI-20 | Processar áudio e observar forma de onda processada | Gráfico atualizado; visualização anterior preservada para comparação | [ ] Pendente |
+| GUI-21 | Ouvir original, ouvir processado e acionar Parar | Reprodução audível, alternância e interrupção sem erros | [ ] Pendente |
+| GUI-22 | Alterar entrada ou filtros durante/após reprodução | Áudio anterior interrompido/invalido; não reproduzir dados desatualizados | [ ] Pendente |
+| GUI-23 | Usar rolagem e reduzir janela para tamanho menor | Cabeçalho, botões e seções permanecem acessíveis sem sobreposição | [ ] Pendente |
+| GUI-24 | Abrir aplicação com Qt Multimedia indisponível | Interface abre, recursos de reprodução indicam indisponibilidade | [ ] Pendente |
+| GUI-25 | Exportar WAV e reabrir o arquivo salvo | Arquivo válido, metadados coerentes, conteúdo reproduzível | [ ] Pendente |
+| GUI-26 | Exportar para arquivo existente e confirmar Sim | Substituição ocorre apenas após consentimento; sem dano ao original de teste | [ ] Pendente |
+
+## Validação exploratória já relatada (19/11/2026)
+
+No acompanhamento do desenvolvimento, houve relatos positivos de **compilação da GUI, abertura da janela, carregamento WAV, processamento básico, reprodução original/processada, botão Parar e visualização das ondas**. A interface monocromática com logo transparente e rolagem também foi conferida por capturas de tela. Esses relatos **não aprovam automaticamente os casos da tabela**: ainda é necessário registrar arquivos usados, passos e evidências para cada caso.
 
 ## Registrar evidências
 
@@ -59,6 +71,8 @@ Evidencia:
 
 - Os testes de estado, filtros, processamento e exportação foram executados sem falhas relevantes.
 - Os WAV exportados podem ser reabertos e possuem metadados coerentes.
+- Reprodução original/processada, interrupção, gráficos e estados dos controles foram verificados.
+- Os testes com filtros individuais, múltiplos filtros e cenários de erro possuem resultado e evidência.
 - Nenhuma funcionalidade da interface apresenta sucesso ficticio quando a operação falha.
 - Pendencias do núcleo e pendencias da GUI estão registradas separadamente.
 - Nenhum artefato de compilação (`build-gui/`) e incluído no commit.

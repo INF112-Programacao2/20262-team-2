@@ -2,7 +2,7 @@
 
 Interface do projeto de **INF112 - Programação II**, implementada em **C++17** e **Qt 6 Widgets**.
 
-> **Situação de desenvolvimento:** a GUI possui código para carregar arquivos WAV, montar e aplicar uma cadeia de filtros e exportar áudio processado. **A execução do fluxo completo ainda não foi validada.** Na revisão de 18/11/2026, a compilação parou em um erro do núcleo (`src/gerenciador_arquivo_WAV.cpp`: chamada a `e_valido()` que não corresponde a `e_valida(const char*)`). Essa pendência pertence aos responsáveis pelo núcleo; a GUI não deve alterar `src/` nem `include/` para contorná-la.
+> **Situação em 19/11/2026:** o executável foi compilado com sucesso no Windows (Qt 6.12 / MinGW), e a janela **Na Escuta?** foi aberta. O fluxo básico de carregamento WAV, processamento e exportação foi exercitado durante o desenvolvimento; a reprodução original/processada, o botão Parar, as formas de onda e a rolagem também foram confirmados manualmente. **Ainda faltam registros formais e testes abrangentes de todos os filtros e condições de erro.**
 
 ## Recursos implementados na GUI
 
@@ -15,6 +15,9 @@ Interface do projeto de **INF112 - Programação II**, implementada em **C++17**
 - Exportar pela API `GerenciadorArquivoWav::exportar`, verificando o caminho e pedindo confirmação antes de sobrescrever.
 - Invalidar o resultado anterior quando a entrada ou a configuração da cadeia mudar, evitando exportar dados desatualizados.
 - Exibir mensagens de estado e erros com recursos do Qt (`QMessageBox` e barra de status).
+- Reproduzir áudio original e processado, com botão para interromper a reprodução (Qt Multimedia, quando disponível).
+- Exibir as formas de onda original e processada, usando amostras de `DadosAudio` e desenho em Qt Widgets.
+- Apresentar a identidade visual **Na Escuta?** em preto, branco e cinza, com logo PNG transparente incorporada por recursos Qt (`.qrc`), cabeçalho fixo e área de conteúdo rolável.
 
 ### Filtros mostrados na interface
 
@@ -26,7 +29,7 @@ Interface do projeto de **INF112 - Programação II**, implementada em **C++17**
 | Limpeza de fala | Código presente | Cortes grave e agudo |
 | Eco / Delay | Indisponível | Permanece sinalizado como recurso futuro; depende de API no núcleo |
 
-**Importante:** integração no código não equivale a funcionamento comprovado. Os filtros precisam ser testados com arquivos de áudio depois que a compilação do núcleo for corrigida.
+**Importante:** a compilação completa passou, mas isso não comprova a qualidade de cada filtro. Volume foi usado no fluxo básico; Distorção, Reforço de frequência, Limpeza de fala e combinações de filtros ainda precisam de testes individuais e conjuntos documentados.
 
 ## Organização de arquivos
 
@@ -36,14 +39,18 @@ Interface do projeto de **INF112 - Programação II**, implementada em **C++17**
 | `interfacegrafica.hpp` / `.cpp` | Janela Qt, botões, validações, estados e eventos |
 | `catalogo_filtros.hpp` | Nomes, unidades, limites e valores padrão dos controles |
 | `ponte_filtros.hpp` / `.cpp` | Adaptar os valores da tela aos construtores de filtros do núcleo |
-| `CMakeLists.txt` | Configurar a compilação da GUI e sua ligação com o núcleo |
-| `TESTES_GUI.md` | Roteiro manual e registro de testes pendentes |
+| `CMakeLists.txt` | Configurar a compilação da GUI, Qt Multimedia opcional e ligação com o núcleo |
+| `reprodutor_audio.hpp` / `.cpp` | Reprodução e parada de áudio original/processado com Qt Multimedia |
+| `visualizacao_onda.hpp` | Representação gráfica de amplitude, calculada a partir das amostras |
+| `identidade_visual.qrc` / `assets/logo_na_escuta.png` | Logo transparente incorporada ao executável |
+| `TESTES_GUI.md` | Plano de testes manuais, critérios de aprovação e evidências |
 
 A interface utiliza os contratos públicos de `DadosAudio`, `GerenciadorArquivoWav` e `CadeiaFiltros`, mas não implementa as regras de leitura e escrita WAV nem os algoritmos de processamento digital.
 
 ## Ferramentas
 
 - Qt 6 com módulo **Widgets** (compilador compatível com a mesma instalação do Qt).
+- Qt **Multimedia** para ouvir os áudios na própria aplicação. O projeto permite compilar sem esse módulo, mas a reprodução fica indisponível nesse caso.
 - CMake 3.16 ou superior.
 - Ninja.
 - Compilador com suporte a C++17.
@@ -60,11 +67,11 @@ cmake --build build-gui
 ./build-gui/gui.exe
 ```
 
-O executável somente estará disponível se a compilação for concluída com sucesso. Um erro no núcleo pode impedir a geração de `gui.exe`.
+No Windows usado no desenvolvimento, o alvo `gui` compilou com sucesso e o executável abriu. Se houver erro em uma nova versão do núcleo, ele ainda poderá impedir a geração de `gui.exe`.
 
 ### Verificar somente a compilação da interface
 
-Se o núcleo ainda apresentar erros, o alvo `gui_verificacao` permite compilar
+O alvo `gui_verificacao` permite compilar
 os arquivos da GUI separadamente, com o compilador e as bibliotecas Qt6
 configurados pelo CMake:
 
@@ -77,7 +84,7 @@ geração Qt MOC. **Não compila `src/`, não vincula o programa e não executa
 testes de processamento ou exportação**. Um resultado sem erros confirma
 somente a compilação isolada das unidades da GUI, não o funcionamento final.
 
-Para testar o fluxo completo após a correção do núcleo, utilize o alvo normal:
+Para compilar e testar o programa completo, utilize o alvo normal:
 
 ```bash
 cmake --build build-gui --target gui
@@ -97,7 +104,7 @@ Os comandos de Linux são orientações de configuração e **não representam u
 
 ## Como validar
 
-O roteiro de casos de teste está em [`TESTES_GUI.md`](TESTES_GUI.md). Registre os resultados reais, principalmente em carregamento, aplicação de cada filtro e exportação/reabertura de WAV.
+O roteiro de casos de teste está em [`TESTES_GUI.md`](TESTES_GUI.md). Registre os resultados reais, principalmente em carregamento, aplicação de cada filtro, reprodução, formas de onda, estados da interface e exportação/reabertura de WAV. Os testes exploratórios relatados durante o desenvolvimento não substituem o preenchimento de resultados e evidências no roteiro.
 
 ### Escopo da branch
 
