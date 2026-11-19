@@ -62,6 +62,28 @@ cmake --build build-gui
 
 O executável somente estará disponível se a compilação for concluída com sucesso. Um erro no núcleo pode impedir a geração de `gui.exe`.
 
+### Verificar somente a compilação da interface
+
+Se o núcleo ainda apresentar erros, o alvo `gui_verificacao` permite compilar
+os arquivos da GUI separadamente, com o compilador e as bibliotecas Qt6
+configurados pelo CMake:
+
+```bash
+cmake --build build-gui --target gui_verificacao -- -k 0
+```
+
+Esse alvo verifica `main.cpp`, `interfacegrafica.cpp`, `ponte_filtros.cpp` e a
+geração Qt MOC. **Não compila `src/`, não vincula o programa e não executa
+testes de processamento ou exportação**. Um resultado sem erros confirma
+somente a compilação isolada das unidades da GUI, não o funcionamento final.
+
+Para testar o fluxo completo após a correção do núcleo, utilize o alvo normal:
+
+```bash
+cmake --build build-gui --target gui
+./build-gui/gui.exe
+```
+
 ### Linux (Ubuntu / Debian)
 
 ```bash

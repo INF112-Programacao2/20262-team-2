@@ -30,3 +30,21 @@ add_executable(gui
     ponte_filtros.hpp
 )
 target_link_libraries(gui PRIVATE Qt6::Widgets nucleo)
+
+# ----- Diagnostico da GUI sem compilar ou vincular o nucleo -----
+# Biblioteca de objetos: verifica a compilacao de cada arquivo da interface,
+# incluindo sinais/slots Qt (AUTOMOC), mas nao produz executavel.
+# Mantida separada de "gui" para nao alterar a compilacao normal do projeto.
+add_library(gui_verificacao OBJECT
+    main.cpp
+    interfacegrafica.cpp
+    interfacegrafica.hpp
+    catalogo_filtros.hpp
+    ponte_filtros.cpp
+    ponte_filtros.hpp
+)
+target_include_directories(gui_verificacao PRIVATE
+    ${RAIZ_PROJETO}/include
+    ${RAIZ_PROJETO}/include/filtros
+)
+target_link_libraries(gui_verificacao PRIVATE Qt6::Widgets)
