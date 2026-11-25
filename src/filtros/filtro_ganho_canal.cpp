@@ -15,3 +15,18 @@ FiltroGanhoCanal::FiltroGanhoCanal(double ganho_esquerdo_db, double ganho_direit
         throw std::invalid_argument("FiltroGanhoCanal: ganho direito fora do intervalo permitido (-24 a +24 dB)");
 }
 
+double FiltroGanhoCanal::get_ganho_esquerdo_db() const { 
+    return ganho_esquerdo_db; 
+}
+double FiltroGanhoCanal::get_ganho_direito_db() const { 
+    return ganho_direito_db; 
+}
+
+std::string FiltroGanhoCanal::get_tipo() const {
+    return "GanhoCanal";
+}
+
+std::string FiltroGanhoCanal::get_parametros() const {
+    return "ganho_esquerdo_db=" + std::to_string(ganho_esquerdo_db) +
+           ",ganho_direito_db=" + std::to_string(ganho_direito_db);
+}
