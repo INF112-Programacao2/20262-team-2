@@ -1,5 +1,7 @@
 #include "ponte_filtros.hpp"
 #include "filtro_distorcao.hpp"
+#include "filtro_eco.hpp"
+#include "filtro_ganho_canal.hpp"
 #include "filtro_limpa_ruido.hpp"
 #include "filtro_realce_freq.hpp"
 #include "filtro_volume.hpp"
@@ -9,10 +11,12 @@ bool filtroDisponivel(TipoFiltro tipo) {
     switch (tipo) {
         case TipoFiltro::Volume:
         case TipoFiltro::Distorcao:
+        case TipoFiltro::Eco:
+        case TipoFiltro::GanhoPorCanal:
         case TipoFiltro::ReforcoFrequencia:
         case TipoFiltro::LimpezaFala:
             return true;
-        default:   // Eco/Delay ainda nao possui implementacao no nucleo
+        default:
             return false;
     }
 }
@@ -61,6 +65,14 @@ CadeiaMontada montarCadeia(const QList<QVariantList> &itens) {
                 filtro = std::make_unique<FiltroDistorcao>(drive, limite, 0.8);
                 break;
             }
+            case TipoFiltro::Eco:
+                filtro = std::make_unique<FiltroEco>(
+                    valorDoItem(dados, 1, def), valorDoItem(dados, 2, def) / 100.0);
+                break;
+            case TipoFiltro::GanhoPorCanal:
+                filtro = std::make_unique<FiltroGanhoCanal>(
+                    valorDoItem(dados, 1, def), valorDoItem(dados, 2, def));
+                break;
             case TipoFiltro::ReforcoFrequencia:
                 filtro = std::make_unique<FiltroRealceFreq>(
                     valorDoItem(dados, 1, def), valorDoItem(dados, 2, def));
@@ -70,7 +82,7 @@ CadeiaMontada montarCadeia(const QList<QVariantList> &itens) {
                     valorDoItem(dados, 1, def), valorDoItem(dados, 2, def));
                 break;
             default:
-                break;   // Eco/Delay permanece indisponivel
+                break;
         }
 
         if (!filtro) {

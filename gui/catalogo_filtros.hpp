@@ -13,6 +13,7 @@ enum class TipoFiltro {
     Eco,
     ReforcoFrequencia,
     LimpezaFala,
+    GanhoPorCanal,
 };
 
 struct ParametroDef {
@@ -36,12 +37,14 @@ inline const QVector<FiltroDef> &catalogoFiltros() {
         {"Distorção", TipoFiltro::Distorcao,
             {{"Intensidade", 0, 100, 30, " %"}, {"Limite", 10, 100, 80, " %"}}},
         {"Eco / Delay", TipoFiltro::Eco,
-            {{"Atraso", 50, 1000, 300, " ms"}, {"Repetição", 0, 90, 40, " %"}}},
+            {{"Atraso", 1, 2000, 300, " ms"}, {"Repetição", 0, 95, 40, " %"}}},
         {"Reforço de frequência (perda auditiva)", TipoFiltro::ReforcoFrequencia,
             {{"Frequência central", 250, 8000, 2000, " Hz"}, {"Ganho", -24, 24, 6, " dB"}}},
         // Faixas separadas garantem corte grave menor que corte agudo.
         {"Limpeza de fala", TipoFiltro::LimpezaFala,
             {{"Corte grave", 100, 1000, 300, " Hz"}, {"Corte agudo", 1200, 6000, 3400, " Hz"}}},
+        {"Ganho por canal (estéreo)", TipoFiltro::GanhoPorCanal,
+            {{"Canal esquerdo", -24, 24, 0, " dB"}, {"Canal direito", -24, 24, 0, " dB"}}},
     };
     return filtros;
 }
