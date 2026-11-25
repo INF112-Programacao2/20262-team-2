@@ -30,3 +30,29 @@ std::string FiltroEco::get_parametros() const {
     return "atraso_ms=" + std::to_string(atraso_ms) +
            ",repeticao=" + std::to_string(repeticao);
 }
+
+void FiltroEco::processar(DadosAudio &audio) {
+    int16_t *amostras = audio.get_audio();
+    uint32_t total_amostras = audio.get_num_amostras(); //total de amostras (canais intercalados)
+    uint32_t canais = audio.get_num_canais();
+    double fs = static_cast<double>(audio.get_sample_rate());
+
+    if (amostras == nullptr || total_amostras == 0 || canais == 0 || repeticao == 0.0)
+        return;
+
+    //atraso em frames (uma amostra de cada canal); mínimo de 1 frame
+    uint64_t atraso_frames = static_cast<uint64_t>(std::llround(atraso_ms * fs / 1000.0));
+    if (atraso_frames < 1)
+        atraso_frames = 1;
+
+    //no vetor intercalado (L R L R...), voltar "atraso_frames * canais" posições cai no MESMO canal
+    uint64_t atraso = atraso_frames * canais;
+    if (atraso >= total_amostras)
+        return; //o áudio é mais curto que o atraso: nenhuma repetição cabe
+
+    //realimentação: a amostra anterior já inclui os ecos passados, por isso as repetições vão diminuindo
+    for (uint64_t i = atraso; i < total_amostras; i++) {
+        double y = static_cast<double>(amostras[i]) + repeticao * static_cast<double>(amostras[i - atraso]);
+        amostras[i] = clipping(y);
+    }
+}
