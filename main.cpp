@@ -1,4 +1,3 @@
-
 //main de teste: carrega um WAV, aplica uma cadeia de filtros e exporta o resultado
 //uso: ./processador_audio [entrada.wav] [saida.wav]
 #include <filesystem>
@@ -6,14 +5,15 @@
 #include <memory>
 #include <string>
 #include "cadeia_filtros.hpp"
+#include "filtro_distorcao.hpp"
 #include "filtro_limpa_ruido.hpp"
 #include "filtro_realce_freq.hpp"
 #include "filtro_volume.hpp"
 #include "gerenciador_arquivo_WAV.hpp"
 
 int main(int argc, char *argv[]) {
-    std::string entrada = (argc > 1) ? argv[1] : "data/teste.wav";
-    std::string saida = (argc > 2) ? argv[2] : "data/saida/teste_processado.wav";
+    std::string entrada = (argc > 1) ? argv[1] : "data/03_voz_com_ruido.wav";
+    std::string saida = (argc > 2) ? argv[2] : "data/saida/ruidoprocessado.wav";
 
     try {
         std::cout << "Carregando: " << entrada << std::endl;
