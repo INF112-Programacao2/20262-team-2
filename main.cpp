@@ -1,4 +1,3 @@
-
 //main de teste: carrega um WAV, aplica uma cadeia de filtros e exporta o resultado
 //uso: ./processador_audio [entrada.wav] [saida.wav]
 #include <filesystem>
@@ -6,6 +5,7 @@
 #include <memory>
 #include <string>
 #include "cadeia_filtros.hpp"
+#include "filtro_distorcao.hpp"
 #include "filtro_limpa_ruido.hpp"
 #include "filtro_realce_freq.hpp"
 #include "filtro_volume.hpp"
@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
         CadeiaFiltros cadeia;
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroLimpaRuido()));
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroRealceFreq(2500.0, 6.0)));
+        cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroDistorcao(3.0, 0.5, 0.8)));
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroVolume(1.5)));
 
         std::cout << "Aplicando " << cadeia.get_quantidade() << " filtros:" << std::endl;
