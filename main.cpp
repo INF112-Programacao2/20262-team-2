@@ -12,8 +12,8 @@
 #include "gerenciador_arquivo_WAV.hpp"
 
 int main(int argc, char *argv[]) {
-    std::string entrada = (argc > 1) ? argv[1] : "data/teste.wav";
-    std::string saida = (argc > 2) ? argv[2] : "data/saida/teste_processado.wav";
+    std::string entrada = (argc > 1) ? argv[1] : "data/03_voz_com_ruido.wav";
+    std::string saida = (argc > 2) ? argv[2] : "data/saida/ruidoprocessado.wav";
 
     try {
         std::cout << "Carregando: " << entrada << std::endl;
@@ -25,7 +25,6 @@ int main(int argc, char *argv[]) {
         CadeiaFiltros cadeia;
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroLimpaRuido()));
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroRealceFreq(2500.0, 6.0)));
-        cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroDistorcao(3.0, 0.5, 0.8)));
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroVolume(1.5)));
 
         std::cout << "Aplicando " << cadeia.get_quantidade() << " filtros:" << std::endl;
