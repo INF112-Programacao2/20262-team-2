@@ -8,6 +8,7 @@
 #include <QMediaDevices>
 #include <QTimer>
 
+#include <algorithm>
 #include <cstdint>
 #include <utility>
 
@@ -30,6 +31,9 @@ void ReprodutorAudio::parar() {
     }
     fonte.reset();
     fontePcm.clear();
+    taxaAtual = 0;
+    canaisAtuais = 0;
+    inicioAtualMs = 0;
     notificar();
 }
 
@@ -43,8 +47,29 @@ void ReprodutorAudio::limpar() {
 
 bool ReprodutorAudio::temOriginal() const { return !originalPcm.isEmpty(); }
 bool ReprodutorAudio::tocando() const {
-    return saida && (saida->state() == QtAudio::ActiveState ||
-                     saida->state() == QtAudio::SuspendedState);
+    return reproduzindo() || pausado();
+}
+
+bool ReprodutorAudio::reproduzindo() const {
+    return saida && saida->state() == QtAudio::ActiveState;
+}
+
+bool ReprodutorAudio::pausado() const {
+    return saida && saida->state() == QtAudio::SuspendedState;
+}
+
+void ReprodutorAudio::pausar() {
+    if (reproduzindo()) {
+        saida->suspend();
+        notificar();
+    }
+}
+
+void ReprodutorAudio::continuar() {
+    if (pausado()) {
+        saida->resume();
+        notificar();
+    }
 }
 
 void ReprodutorAudio::definirOriginal(const DadosAudio &audio) {
@@ -79,7 +104,30 @@ bool ReprodutorAudio::tocarProcessado(const DadosAudio &audio, QString &erro) {
                    static_cast<int>(audio.get_num_canais()), erro);
 }
 
-bool ReprodutorAudio::iniciar(const QByteArray &pcm, int taxa, int canais, QString &erro) {
+qint64 ReprodutorAudio::duracaoMs() const {
+    if (taxaAtual <= 0 || canaisAtuais <= 0) return 0;
+    const qint64 quadros = fontePcm.size() / (static_cast<qint64>(canaisAtuais) * sizeof(int16_t));
+    return quadros * 1000 / taxaAtual;
+}
+
+qint64 ReprodutorAudio::posicaoMs() const {
+    if (!saida) return 0;
+    return std::min(duracaoMs(), inicioAtualMs + saida->processedUSecs() / 1000);
+}
+
+bool ReprodutorAudio::buscarMs(qint64 posicao, QString &erro) {
+    if (!tocando() || fontePcm.isEmpty()) {
+        erro = "Inicie a reprodução antes de avançar ou voltar.";
+        return false;
+    }
+    const QByteArray pcm = fontePcm;
+    const bool estavaPausado = pausado();
+    if (!iniciar(pcm, taxaAtual, canaisAtuais, erro, posicao)) return false;
+    if (estavaPausado) pausar();
+    return true;
+}
+
+bool ReprodutorAudio::iniciar(const QByteArray &pcm, int taxa, int canais, QString &erro, qint64 inicioMs) {
     parar();
     if (pcm.isEmpty() || taxa <= 0 || canais <= 0) {
         erro = "Formato de áudio inválido para reprodução.";
@@ -101,9 +149,22 @@ bool ReprodutorAudio::iniciar(const QByteArray &pcm, int taxa, int canais, QStri
     }
 
     fontePcm = pcm; // compartilhamento de memória do QByteArray (sem cópia profunda)
+    taxaAtual = taxa;
+    canaisAtuais = canais;
+    const qint64 msMaximo = duracaoMs() > 0 ? duracaoMs() - 1 : 0;
+    inicioAtualMs = std::max<qint64>(0, std::min(inicioMs, msMaximo));
     fonte = std::make_unique<QBuffer>(&fontePcm);
     if (!fonte->open(QIODevice::ReadOnly)) {
         erro = "Não foi possível preparar o áudio para reprodução.";
+        parar();
+        return false;
+    }
+    const qint64 tamanhoQuadro = static_cast<qint64>(canais) * sizeof(int16_t);
+    const qint64 quadroInicial = inicioAtualMs * taxa / 1000;
+    const qint64 deslocamento = std::min<qint64>(
+        quadroInicial * tamanhoQuadro, fontePcm.size() - tamanhoQuadro);
+    if (deslocamento > 0 && !fonte->seek(deslocamento)) {
+        erro = "Não foi possível posicionar a reprodução.";
         parar();
         return false;
     }

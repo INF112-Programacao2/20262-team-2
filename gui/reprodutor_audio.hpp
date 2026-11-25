@@ -23,18 +23,28 @@ public:
     void parar();
     bool temOriginal() const;
     bool tocando() const;
+    bool pausado() const;
+    bool reproduzindo() const;
+    void pausar();
+    void continuar();
     bool tocarOriginal(QString &erro);
     bool tocarProcessado(const DadosAudio &audio, QString &erro);
+    qint64 duracaoMs() const;
+    qint64 posicaoMs() const;
+    bool buscarMs(qint64 posicao, QString &erro);
     void aoAlterarEstado(std::function<void()> callback);
 
 private:
-    bool iniciar(const QByteArray &pcm, int taxa, int canais, QString &erro);
+    bool iniciar(const QByteArray &pcm, int taxa, int canais, QString &erro, qint64 inicioMs = 0);
     void notificar();
 
     QByteArray originalPcm;
     QByteArray fontePcm; // também aceita visualização sem cópia (fromRawData)
     int taxaOriginal = 0;
     int canaisOriginais = 0;
+    int taxaAtual = 0;
+    int canaisAtuais = 0;
+    qint64 inicioAtualMs = 0;
     std::unique_ptr<QBuffer> fonte;
     std::unique_ptr<QAudioSink> saida;
     std::function<void()> callbackEstado;

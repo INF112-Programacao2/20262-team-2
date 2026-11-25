@@ -1,10 +1,15 @@
 #pragma once
 #include <QMainWindow>
+#include <QString>
 #include <memory>
 
 class DadosAudio;
 
 class QLineEdit;
+class QDragEnterEvent;
+class QDropEvent;
+class QMenu;
+class QTimer;
 class QComboBox;
 class QSlider;
 class QLabel;
@@ -19,6 +24,10 @@ class InterfaceGrafica : public QMainWindow {
 public:
     explicit InterfaceGrafica(QWidget *parent = nullptr);
     ~InterfaceGrafica() override;
+
+protected:
+    void dragEnterEvent(QDragEnterEvent *evento) override;
+    void dropEvent(QDropEvent *evento) override;
 
 private slots:
     void escolherEntrada();
@@ -41,9 +50,14 @@ private:
     void atualizarEstado();
     void definirOcupado(bool ocupado);
     bool invalidarAudioAposAlterarCadeia();
+    void atualizarMenuRecentes();
+    void registrarArquivoRecente(const QString &caminho);
+    void atualizarProgressoReproducao();
 
     // Arquivos
     QLineEdit *campoEntrada;
+    QMenu *menuRecentes;
+    QString ultimaSaidaAutomatica;
     QLineEdit *campoSaida;
     QLabel *rotuloInfoAudio;
     QLabel *rotuloEstadoAudio;
@@ -70,9 +84,16 @@ private:
     VisualizacaoOnda *ondaProcessada;
     QPushButton *botaoOuvirOriginal;
     QPushButton *botaoOuvirProcessado;
+    QPushButton *botaoPausarAudio;
+    QPushButton *botaoContinuarAudio;
     QPushButton *botaoPararAudio;
+    QSlider *sliderProgresso;
+    QLabel *rotuloTempo;
+    QTimer *timerProgresso;
     ReprodutorAudio *reprodutor = nullptr;  // criado apenas com Qt Multimedia disponível
     std::unique_ptr<DadosAudio> audioCarregado;
+    std::unique_ptr<DadosAudio> audioResultado;
     bool arquivoCarregado = false;
+    bool ocupado = false;
     bool audioProcessado = false;
 };
