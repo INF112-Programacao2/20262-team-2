@@ -9,11 +9,12 @@
 #include "filtro_limpa_ruido.hpp"
 #include "filtro_realce_freq.hpp"
 #include "filtro_volume.hpp"
+#include "filtro_eco.hpp"
 #include "gerenciador_arquivo_WAV.hpp"
 
 int main(int argc, char *argv[]) {
-    std::string entrada = (argc > 1) ? argv[1] : "data/03_voz_com_ruido.wav";
-    std::string saida = (argc > 2) ? argv[2] : "data/saida/ruidoprocessado.wav";
+    std::string entrada = (argc > 1) ? argv[1] : "data/tipoe2_limpo.wav";
+    std::string saida = (argc > 2) ? argv[2] : "data/saida/tipoeh.wav";
 
     try {
         std::cout << "Carregando: " << entrada << std::endl;
@@ -26,6 +27,8 @@ int main(int argc, char *argv[]) {
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroLimpaRuido()));
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroRealceFreq(2500.0, 6.0)));
         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroVolume(1.5)));
+        cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroEco(1000.0, 0.65)));
+         cadeia.adicionar_filtro(std::unique_ptr<FiltroAudio>(new FiltroDistorcao(18.0, 0.20,0.45)));
 
         std::cout << "Aplicando " << cadeia.get_quantidade() << " filtros:" << std::endl;
         for (uint32_t i = 0; i < cadeia.get_quantidade(); i++)
