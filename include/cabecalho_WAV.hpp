@@ -5,7 +5,9 @@
 #include <cstdint> //Garante inteiros com tamanho exatro em bytes (uint16_t, uint32_t)
 
 
-//Tamanho fixo, em bytes, do cabeçalho de um .wav PCM simples.
+//Tamanho, em bytes, de um cabeçalho "normal" de um .wav PCM simples (e o que o exportar vaigravar).
+//Ao ler um arquivo, não é assumido que o arquivo tenha necessariamente 44bytes.
+//O carregar percorre os chunks, pois o arquivo de entrada pode ter chunks extras (LIST, id3...) antes do "data".
 constexpr std::size_t TAMANHO_CABECALHO_WAV = 44;
 
 
@@ -57,6 +59,10 @@ class CabecalhoWav{
     void set_num_de_canais(uint16_t canais);
     void set_sample_rate(uint32_t sr);
     void set_subchunk2_size(uint32_t size);
+
+
+    // Preenche os campos do chunk fmt lidos de um arquivo e recvalcula byteRate/blockAlign
+    void configurar_formato(uint16_t formato, uint16_t canais, uint32_t sr, uint16_t bits);
 
 };
 #pragma pack(pop)
