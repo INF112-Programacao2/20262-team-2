@@ -80,13 +80,54 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
     // Um .wav é uma sequencia de "chunks": [id (4 bytes)][tamanho (4 bytes)][conteudo]
     // Não posso dizer que"data" comeca no byte 36: pq tem programas como o Audacity que colocam
     // chunks extras (LIST, id3, fact...) antes dele, fazendo o fmt pode ter mais de 16 bytes.
+
+    // Logo, vamos percorrer os chunks, guardar o "fmt" e pular tudo que nao interessa até achar o "data"
     bool achou_fmt = false;
     uint16_t formato = 0, canais = 0, block_align = 0, bits = 0;
     uint32_t taxa = 0;
     uint32_t bytes_audio = 0;
+    uint64_t inicio_dados = 0;
     bool achou_data = false;
+    uint64_t posicao = 12;   //posicao (no arquivo) do proximo chunk
 
+// Repetição que vai ser responsável por percorrer os chunks do arquivo WAV até encontrar o chunk data
+ while(posicao + 8 <= tamanho_no_disco){
+        unsigned char cab[8];
+        arquivo.seekg(static_cast<std::streamoff>(posicao));
+        arquivo.read(reinterpret_cast<char*>(cab), sizeof(cab));
+        if(arquivo.gcount() != static_cast<std::streamsize>(sizeof(cab))){
+            break;
+        }
+        uint32_t tam_chunk = ler_u32(cab + 4);
+        uint64_t inicio_conteudo = posicao + 8;
 
+        if(std::memcmp(cab, "fmt ", 4) == 0){
+            if(tam_chunk < 16){
+                throw FormatoWavInvalido("o chunk fmt e menor que 16 bytes.");
+            }
+            if(inicio_conteudo + tam_chunk > tamanho_no_disco){
+                throw FormatoWavInvalido("o chunk fmt esta truncado (arquivo incompleto ou corrompido).");
+            }
+            
+            //Só os primeiros 40 bytes importam (16 do PCM + extensao WAVE_FORMAT_EXTENSIBLE)
+            unsigned char fmt[40] = {0};
+            std::streamsize a_ler = static_cast<std::streamsize>(tam_chunk < sizeof(fmt) ? tam_chunk : sizeof(fmt));
+            arquivo.read(reinterpret_cast<char*>(fmt), a_ler);
+            if(arquivo.gcount() != a_ler){
+                throw ErroAcessoArquivo("falha ao ler o chunk fmt de: " + caminho);
+            }
+            formato     = ler_u16(fmt);
+            canais      = ler_u16(fmt + 2);
+            taxa        = ler_u32(fmt + 4);
+            block_align = ler_u16(fmt + 12);
+            bits        = ler_u16(fmt + 14);
+            //WAVE_FORMAT_EXTENSIBLE (0xFFFE): o codigo real (1 = PCM) ficva nos 2 primeiros
+            //bytes do SubFormat, no offset 24 do chunk
+            if(formato == 0xFFFE && tam_chunk >= 40){
+                formato = ler_u16(fmt + 24);
+            }
+            achou_fmt = true;
+        }
 
     //Só aceita quantidade de bytes igual a um número inteiro de frames (1 amostra de cada canal)
     uint32_t bytes_por_frame = cabecalho.get_num_de_canais() * sizeof(int16_t);
