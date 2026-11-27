@@ -83,3 +83,12 @@ void CabecalhoWav::set_subchunk2_size(uint32_t size) {
     dataSize = size;
     recalcular_derivados();
 }
+
+//Define as propriedades principais do áudio (formato, canais, taxa e bits) e atualiza os campos derivados/deperndentes (como byteRate e blockAlign)
+void CabecalhoWav::configurar_formato(uint16_t formato, uint16_t canais, uint32_t sr, uint16_t bits) {
+    formato_audio = formato;
+    num_de_canais = canais;
+    sampleRate = sr;
+    bitsPerSample = bits;
+    recalcular_derivados();
+}
