@@ -60,21 +60,23 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
     }
 
 
-    //Leitura dos 44 bytes do cabeçalho
-    CabecalhoWav cabecalho;
-    arquivo.read(reinterpret_cast<char*>(&cabecalho), TAMANHO_CABECALHO_WAV);
-    //Validação dos marcadores RIFF e WAVE(história 1)
-    if(arquivo.gcount() != static_cast<std::streamsize>(TAMANHO_CABECALHO_WAV)){
-        throw FormatoWavInvalido("o arquivo tem menos de 44 bytes, nao ha cabecalho WAV completo.");
+    uint64_t tamanho_no_disco = fs::file_size(origem, erro);
+    if(erro){
+        throw ErroAcessoArquivo("nao foi possivel obter o tamanho do arquivo: " + caminho);
     }
 
-    //Validação dos marcadores RIFF e WAVE(história 1)
-    if(!cabecalho.e_valido()){
-        throw FormatoWavInvalido("marcadores RIFF/WAVE (ou fmt/data) nao encontrados.");
+
+    //Leitura do cabeçalho RIFF (12 bytes): "RIFF" + tamanho + "WAVE" (história 1)
+    unsigned char riff[12];
+    arquivo.read(reinterpret_cast<char*>(riff), sizeof(riff));
+    if(arquivo.gcounmt() != static_cast<std::streamsize>(sizeof(riff))){
+        throw FormatoWavInvalido("o arquivo tem menos de 12 bytes, nao ha cabecalho WAV completo.");
     }
-    if(!cabecalho.e_suportado()){
-        throw FormatoWavInvalido("somente WAV PCM de 16 bits e suportado.");
+
+    if(std::memcmp(riff, "RIFF", 4) != 0 || std::memcmp(riff + 8, "WAVE", 4) != 0){
+        throw FormatoWavInvalido("marcadores RIFF/WAVE nao encontrados.");
     }
+
 
     //O tamanho dos dados informado no cabeçalho não pode passar do que existe no arquivo.
     //também impede alocar uma quantidade absurda de memória por causa de um cabeçalho corrompido
@@ -86,6 +88,10 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
     if(bytes_audio > tamanho_no_disco - TAMANHO_CABECALHO_WAV){
         throw FormatoWavInvalido("o cabecalho informa mais dados do que o arquivo possui (arquivo truncado ou corrompido).");
     }
+
+
+
+
 
     //Só aceita quantidade de bytes igual a um número inteiro de frames (1 amostra de cada canal)
     uint32_t bytes_por_frame = cabecalho.get_num_de_canais() * sizeof(int16_t);
