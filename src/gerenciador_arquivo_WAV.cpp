@@ -1,5 +1,5 @@
 #include "gerenciador_arquivo_WAV.hpp"
-#include "excecoes_wav.hpp"
+#include "excecoes_WAV.hpp"
 #include <cctype>
 #include <cstring>
 #include <cstdint>
@@ -157,6 +157,10 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
         throw FormatoWavInvalido("somente WAV PCM de 16 bits e suportado.");
     }
 
+    if(taxa == 0){
+        throw FormatoWavInvalido("a taxa de amostragem do arquivo e 0 Hz.");
+    }
+
     //Monta o cabeçalho "normal" de 44 bytes (é ele que o exportar grava) com o que foi lido
     CabecalhoWav cabecalho;
     cabecalho.configurar_formato(formato, canais, taxa, bits);
@@ -242,6 +246,14 @@ void GerenciadorArquivoWav::exportar(const std::string &caminho, const DadosAudi
     CabecalhoWav cabecalho = dados.get_cabecalho();
     cabecalho.set_subchunk2_size(static_cast<uint32_t>(bytes_audio));   //também recalcula o tamanho do arquivo
 
+    //Integridade: não vaigravar um arquivo que o próprio programa não conseguiria ler de volta
+    if(!cabecalho.e_valido() || !cabecalho.e_suportado()){
+        throw ExcecaoWav("o cabecalho do audio e invalido (canais ou taxa de amostragem incorretos); nada foi gravado.");
+    }
+    if(dados.get_num_amostras() % cabecalho.get_num_de_canais() != 0){
+        throw ExcecaoWav("o audio termina no meio de um frame (amostras nao sao multiplo do numero de canais); nada foi gravado.");
+    }
+
     // Gravação segura: primeiro num arquivo temporário
     //Se algo falhar no meio da gravação, o arquivo original (se existir) continua intacto.
     fs::path temporario = destino;
@@ -262,8 +274,12 @@ void GerenciadorArquivoWav::exportar(const std::string &caminho, const DadosAudi
         saida.write(reinterpret_cast<const char*>(dados.get_amostras()), static_cast<std::streamsize>(bytes_audio));
 
         saida.flush();
-        gravou = saida.good();
-    }   //o arquivo temporário é fechado aqui
+
+        //Integridade: a posição de escrita (tellp) tem que ser 44 bytes de cabeçalho + os dados
+        std::streamoff escritos = saida.tellp();
+        gravou = saida.good() && escritos == static_cast<std::streamoff>(TAMANHO_CABECALHO_WAV + bytes_audio);
+
+    }   //  **** o arquivo temporário é fechado aqui  **** 
 
     if(!gravou){
         fs::remove(temporario, erro);
