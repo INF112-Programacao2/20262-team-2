@@ -1,6 +1,7 @@
 #include "gerenciador_arquivo_WAV.hpp"
 #include "excecoes_wav.hpp"
 #include <cctype>
+#include <cstring>
 #include <cstdint>
 #include <filesystem>   // C++17: verificar existência/pasta e trocar o arquivo com segurança
 #include <fstream>  //biblioteca responsável pela leitura e escrita de arquivos no disco.
@@ -23,6 +24,22 @@ static bool tem_extensao_wav(const fs::path &caminho){
     }
     return extensao == ".wav";
 }
+
+
+// Lê um inteiro de 32 bits little-endian (formato dos campos de um .wav) a partir de 4 bytes
+// Ou seja: recebe 4 bytes e monta um inteiro de 32 bits.
+static uint32_t ler_u32(const unsigned char *b){
+    return static_cast<uint32_t>(b[0]) | (static_cast<uint32_t>(b[1]) << 8) |
+           (static_cast<uint32_t>(b[2]) << 16) | (static_cast<uint32_t>(b[3]) << 24);
+}
+
+// Lê um inteiro de 16 bits little-endian a partir de 2 bytes
+// Ou seja:recebe 2 bytes e monta um inteiro de 16 bits.
+static uint16_t ler_u16(const unsigned char *b){
+    return static_cast<uint16_t>(b[0] | (b[1] << 8));
+}
+
+
 
 std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &caminho){
     if(caminho.empty()){
