@@ -108,7 +108,7 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
             if(inicio_conteudo + tam_chunk > tamanho_no_disco){
                 throw FormatoWavInvalido("o chunk fmt esta truncado (arquivo incompleto ou corrompido).");
             }
-            
+
             //Só os primeiros 40 bytes importam (16 do PCM + extensao WAVE_FORMAT_EXTENSIBLE)
             unsigned char fmt[40] = {0};
             std::streamsize a_ler = static_cast<std::streamsize>(tam_chunk < sizeof(fmt) ? tam_chunk : sizeof(fmt));
@@ -128,6 +128,50 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
             }
             achou_fmt = true;
         }
+
+        else if(std::memcmp(cab, "data", 4) == 0){
+            if(!achou_fmt){
+                throw FormatoWavInvalido("o chunk data aparece antes do chunk fmt.");
+            }
+            bytes_audio = tam_chunk;
+            inicio_dados = inicio_conteudo;
+            achou_data = true;
+            break;
+        }
+        //qualquer outro chunk (LIST, id3, fact, bext, C2PA...) vai sert ignorado
+
+        //Chunks tem tamanho par: se o tamanho for impar existe 1 byte de preencvhimento depois
+        posicao = inicio_conteudo + tam_chunk + (tam_chunk & 1u);
+    }
+
+    if(!achou_fmt){
+        throw FormatoWavInvalido("chunk fmt nao encontrado.");
+    }
+
+    if(!achou_data){
+        throw FormatoWavInvalido("chunk data nao encontrado.");
+    }
+
+    //DadosAudio guarda int16_t: só PCM de 16 bits
+    if(formato != 1 || bits != 16 || canais < 1 || block_align != canais * (bits / 8)){
+        throw FormatoWavInvalido("somente WAV PCM de 16 bits e suportado.");
+    }
+
+    //Monta o cabeçalho "normal" de 44 bytes (é ele que o exportar grava) com o que foi lido
+    CabecalhoWav cabecalho;
+    cabecalho.configurar_formato(formato, canais, taxa, bits);
+    if(!cabecalho.e_valido() || !cabecalho.e_suportado()){
+        throw FormatoWavInvalido("somente WAV PCM de 16 bits e suportado.");
+    }
+
+    //O tamanho dos dados informado no cabeçalho não pode passar do que existe no arquivo.
+    //também impede alocar uma quantidade absurda de memória por causa de um cabeçalho corrompido
+    if(bytes_audio > tamanho_no_disco - inicio_dados){
+        throw FormatoWavInvalido("o cabecalho informa mais dados do que o arquivo possui (arquivo truncado ou corrompido).");
+    }
+    cabecalho.set_subchunk2_size(bytes_audio);
+
+
 
     //Só aceita quantidade de bytes igual a um número inteiro de frames (1 amostra de cada canal)
     uint32_t bytes_por_frame = cabecalho.get_num_de_canais() * sizeof(int16_t);
