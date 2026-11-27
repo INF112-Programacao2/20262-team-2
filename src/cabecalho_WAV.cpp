@@ -1,6 +1,7 @@
 #include "cabecalho_WAV.hpp"
 
 #include <cstring>
+#include <stdexcept>
 
 //Construtor que já cria um cabeçalho válido (PCM, 16 bits, estéreo, 44100 Hz, sem dados)
 CabecalhoWav::CabecalhoWav()          
@@ -30,7 +31,7 @@ bool CabecalhoWav::e_valido() const {
 
 //DadosAudio guarda anmostras int16_t, só PCM de 16 bits que vai servir   
 bool CabecalhoWav::e_suportado() const {
-    return formato_audio == 1 && bitsPerSample == 16 &&
+    return formato_audio == 1 && bitsPerSample == 16 && sampleRate > 0 &&
            num_de_canais >= 1 && blockAlign == num_de_canais * (bitsPerSample / 8);
 }
 
@@ -70,11 +71,17 @@ uint32_t CabecalhoWav::get_tamanho_arquivo() const {
 
 // Setters
 void CabecalhoWav::set_num_de_canais(uint16_t canais) {
+    if(canais < 1){
+        throw std::invalid_argument("CabecalhoWav: o numero de canais deve ser pelo menos 1");
+    }
     num_de_canais = canais;
     recalcular_derivados();
 }
 
 void CabecalhoWav::set_sample_rate(uint32_t sr) {
+    if(sr == 0){
+        throw std::invalid_argument("CabecalhoWav: a taxa de amostragem deve ser maior que 0 Hz");
+    }
     sampleRate = sr;
     recalcular_derivados();
 }
