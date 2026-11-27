@@ -59,7 +59,7 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
         throw ErroAcessoArquivo("nao foi possivel abrir o arquivo (verifique as permissoes): " + caminho);
     }
 
-
+// Obtém o tamanho do arquivo e trata possíveis erros ao acessar essa informação.
     uint64_t tamanho_no_disco = fs::file_size(origem, erro);
     if(erro){
         throw ErroAcessoArquivo("nao foi possivel obter o tamanho do arquivo: " + caminho);
@@ -69,27 +69,22 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
     //Leitura do cabeçalho RIFF (12 bytes): "RIFF" + tamanho + "WAVE" (história 1)
     unsigned char riff[12];
     arquivo.read(reinterpret_cast<char*>(riff), sizeof(riff));
-    if(arquivo.gcounmt() != static_cast<std::streamsize>(sizeof(riff))){
+    if(arquivo.gcount() != static_cast<std::streamsize>(sizeof(riff))){
         throw FormatoWavInvalido("o arquivo tem menos de 12 bytes, nao ha cabecalho WAV completo.");
     }
-
     if(std::memcmp(riff, "RIFF", 4) != 0 || std::memcmp(riff + 8, "WAVE", 4) != 0){
         throw FormatoWavInvalido("marcadores RIFF/WAVE nao encontrados.");
     }
 
 
-    //O tamanho dos dados informado no cabeçalho não pode passar do que existe no arquivo.
-    //também impede alocar uma quantidade absurda de memória por causa de um cabeçalho corrompido
-    uint64_t tamanho_no_disco = fs::file_size(origem, erro);
-    if(erro){
-        throw ErroAcessoArquivo("nao foi possivel obter o tamanho do arquivo: " + caminho);
-    }
-    uint32_t bytes_audio = cabecalho.get_subchunk2_size();
-    if(bytes_audio > tamanho_no_disco - TAMANHO_CABECALHO_WAV){
-        throw FormatoWavInvalido("o cabecalho informa mais dados do que o arquivo possui (arquivo truncado ou corrompido).");
-    }
-
-
+    // Um .wav é uma sequencia de "chunks": [id (4 bytes)][tamanho (4 bytes)][conteudo]
+    // Não posso dizer que"data" comeca no byte 36: pq tem programas como o Audacity que colocam
+    // chunks extras (LIST, id3, fact...) antes dele, fazendo o fmt pode ter mais de 16 bytes.
+    bool achou_fmt = false;
+    uint16_t formato = 0, canais = 0, block_align = 0, bits = 0;
+    uint32_t taxa = 0;
+    uint32_t bytes_audio = 0;
+    bool achou_data = false;
 
 
 
