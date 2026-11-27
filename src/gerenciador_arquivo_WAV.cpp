@@ -194,7 +194,9 @@ std::unique_ptr<DadosAudio> GerenciadorArquivoWav::carregar(const std::string &c
         throw ExcecaoWav("memoria insuficiente para carregar o audio.");
     }
 
-    //leitura dos dados brutos de áudio para a memória RAM
+    //leitura dos dados brutos de áudio para a memória RAM (a partir do inicio do chunk data)
+    arquivo.clear();
+    arquivo.seekg(static_cast<std::streamoff>(inicio_dados));
     arquivo.read(reinterpret_cast<char*>(amostras.get()), bytes_audio);
     if(arquivo.gcount() != static_cast<std::streamsize>(bytes_audio)){
         throw ErroAcessoArquivo("falha ao ler os dados de audio de: " + caminho);
