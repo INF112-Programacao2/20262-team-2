@@ -13,6 +13,13 @@ DadosAudio::DadosAudio(const CabecalhoWav &cabecalho,
     if(this->audio == nullptr && num_amostras > 0){
         throw std::invalid_argument("DadosAudio: vetor de amostras nulo, mas num_amostras > 0");
     }
+    uint64_t bytes = static_cast<uint64_t>(num_amostras) * sizeof(int16_t);
+
+    if(bytes > std::numeric_limits<uint32_t>::max() - 36){
+        throw std::length_error("DadosAudio: audio é grande demais para o formato WAV (limite de 4 GB)");
+    }
+    //o tamanho dos dados no cabeçalho sempre vaibater com o vetor que existe lá na memória
+    this->cabecalho.set_subchunk2_size(static_cast<uint32_t>(bytes));
 }
 
 //Destrutor: mas não há nada pra liberar manualmente, o unique_ptr (ponteiro inteligente) libera o vetor sozinho
